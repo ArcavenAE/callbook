@@ -1,0 +1,6 @@
+apiVersion: v2
+name: dolt
+description: Per-project Dolt sql-server (primary + warm standby via Dolt cluster replication), exposed via a TCP-passthrough LoadBalancer with required TLS, plus optional dolt-workbench UI. The callbook production recipe — see docs/design/dolt-service.md.
+type: application
+version: 0.1.0
+appVersion: "2.2.2"

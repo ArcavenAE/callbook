@@ -1,0 +1,156 @@
+# Default values for the dolt chart. Defaults keep `helm template` runnable
+# standalone; a real deployment overrides project, tls, service annotations,
+# and (usually) persistence + resources per project.
+
+# Project short name; combined with namePrefix it becomes the resource name
+# prefix and the dolt "deployment" identity.
+project: example
+
+# Resource name prefix: resources are named <namePrefix><project>.
+namePrefix: "dolt-"
+
+# Cloud region, exported as AWS_REGION on the dolt containers when backups
+# target an aws:// remote (the backup runs inside the sql-server process and
+# the AWS SDK needs an explicit region). Harmless when backups are disabled.
+region: us-east-1
+
+image:
+  # Override to route through a private registry / pull-through cache if you
+  # have one.
+  repository: dolthub/dolt-sql-server
+  tag: "2.2.2"
+  pullPolicy: IfNotPresent
+
+# Primary + warm standby. Scale to 3 for a second standby (added pods join as
+# standbys; standby_remotes are computed for whatever replica count is set).
+# 1 runs without cluster replication entirely (dev/small setups).
+replicas: 2
+
+# Ordinal of the pod the SQL LoadBalancer Service targets (the acting primary).
+# Failover runbook: dolt_assume_cluster_role on both pods, then flip this value.
+primaryPodIndex: 0
+
+# Epoch used for bootstrap_role assignment on first boot of a fresh cluster.
+bootstrapEpoch: 1
+
+sql:
+  port: 3306
+  maxConnections: 200
+  # Required TLS on the public listener; certificate served from the TLS secret.
+  requireSecureTransport: true
+
+# Replication traffic between pods (cluster.remotesapi).
+clusterPort: 50051
+
+# User-facing remotes endpoint (dolt clone/fetch/pull, gRPC over TLS with SQL
+# creds). lbEnabled adds it as a second listener on the SQL LoadBalancer —
+# required for beads federation, whose sync transport is the dolt remote
+# protocol, not SQL. TLS is served end-to-end by dolt with the same
+# certificate as the SQL listener.
+remotesapi:
+  enabled: true
+  lbEnabled: true
+  port: 8000
+
+metrics:
+  port: 7770
+  # Generic Prometheus scrape annotations on the pods.
+  prometheusAnnotations: true
+  # Datadog OpenMetrics autodiscovery annotations, if that's your stack.
+  datadog:
+    enabled: false
+    namespace: dolt
+    # Keep the scrape list explicit; widen after inspecting /metrics on a live
+    # pod. (dss_* is dolt sql-server's own metric family prefix.)
+    metrics:
+      - dss_*
+      - go_goroutines
+      - process_resident_memory_bytes
+
+# Existing Secret holding the root password. Key: root-password. Required.
+existingSecret: ""
+
+# Host pattern allowed for root. If the LoadBalancer is internet-facing, keep
+# root scoped to in-cluster addresses and manage per-user accounts/grants via
+# SQL from your provisioning automation (see docs/enrollment.md — accounts are
+# deliberately managed separately from the instance to limit blast radius).
+rootHost: "%"
+
+# cert-manager Certificate; secret is mounted into the dolt pods.
+tls:
+  enabled: true
+  issuerRef:
+    name: ""
+    kind: ClusterIssuer
+  # All names the server answers on (public vanity name + any internal name).
+  dnsNames: []
+  secretName: ""  # defaults to <fullname>-tls when empty
+
+service:
+  # Annotations for the SQL LoadBalancer Service — cloud LB provisioning
+  # (NLB type/scheme on AWS, etc.) + external-dns hostname.
+  annotations: {}
+  loadBalancerSourceRanges: []
+
+persistence:
+  # Empty = cluster default StorageClass. Use an encrypted SSD class
+  # (gp3 on EKS, premium-ssd on AKS, pd-ssd on GKE).
+  storageClass: ""
+  size: 20Gi
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+
+serviceAccount:
+  create: true
+  # Workload-identity annotations (IRSA role ARN on EKS, GKE WI, etc.),
+  # needed when backups target a cloud remote.
+  annotations: {}
+
+# Scheduled logical backup: CALL dolt_backup('sync', ...) against the primary
+# for every database, targeting an aws:// remote (S3 + DynamoDB). The procedure
+# executes inside the dolt sql-server process (workload identity on the shared
+# ServiceAccount); the CronJob only issues SQL via the mysql client.
+backup:
+  enabled: false
+  schedule: "0 3 * * *"
+  # e.g. aws://[dynamo-table:s3-bucket]/dolt-example — per-database suffix
+  # appended by the job.
+  remoteUrl: ""
+  image:
+    repository: mysql
+    tag: "8.4"
+
+workbench:
+  enabled: false
+  image:
+    repository: dolthub/dolt-workbench
+    tag: "0.3.73"
+  port: 3000
+  graphqlPort: 9002
+  # Same-origin Caddy sidecar: the workbench browser UI calls a separate
+  # GraphQL process directly, which an authenticating app proxy (Teleport,
+  # Pomerium, oauth2-proxy, ...) can't expose as a second origin. Caddy fronts
+  # both ports on one origin: /graphql* -> :9002, everything else -> :3000;
+  # GRAPHQLAPI_URL=/graphql.
+  proxy:
+    enabled: true
+    port: 8080
+    image:
+      repository: caddy
+      tag: "2.10-alpine"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+nodeSelector: {}
+tolerations: []

@@ -1,0 +1,75 @@
+{{- /* Headless service: stable pod DNS for cluster replication + workbench access. */}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dolt.fullname" . }}-headless
+  labels:
+    {{- include "dolt.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    {{- include "dolt.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: sql
+      port: {{ .Values.sql.port }}
+    - name: cluster
+      port: {{ .Values.clusterPort }}
+    - name: metrics
+      port: {{ .Values.metrics.port }}
+    {{- if .Values.remotesapi.enabled }}
+    - name: remotesapi
+      port: {{ .Values.remotesapi.port }}
+    {{- end }}
+---
+{{- /* SQL entrypoint: cloud TCP LoadBalancer, pinned to the acting primary pod.
+       Failover = flip primaryPodIndex (after dolt_assume_cluster_role on both pods). */}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dolt.fullname" . }}
+  labels:
+    {{- include "dolt.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: LoadBalancer
+  {{- with .Values.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    {{- include "dolt.selectorLabels" . | nindent 4 }}
+    statefulset.kubernetes.io/pod-name: {{ include "dolt.fullname" . }}-{{ .Values.primaryPodIndex }}
+  ports:
+    - name: sql
+      port: {{ .Values.sql.port }}
+      targetPort: sql
+    {{- if and .Values.remotesapi.enabled .Values.remotesapi.lbEnabled }}
+    {{- /* Second LB listener: dolt remote protocol (gRPC), TLS served by dolt
+           with the same cert as SQL. Required for beads federation peers
+           (host:remotesapiPort/database). Auth: SQL user credentials. */}}
+    - name: remotesapi
+      port: {{ .Values.remotesapi.port }}
+      targetPort: remotesapi
+    {{- end }}
+{{- if .Values.remotesapi.enabled }}
+---
+{{- /* In-cluster remotesapi endpoint (dolt clone/pull); ClusterIP for cluster-local consumers. */}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dolt.fullname" . }}-remotesapi
+  labels:
+    {{- include "dolt.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "dolt.selectorLabels" . | nindent 4 }}
+    statefulset.kubernetes.io/pod-name: {{ include "dolt.fullname" . }}-{{ .Values.primaryPodIndex }}
+  ports:
+    - name: remotesapi
+      port: {{ .Values.remotesapi.port }}
+      targetPort: remotesapi
+{{- end }}

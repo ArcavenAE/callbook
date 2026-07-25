@@ -1,0 +1,149 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "dolt.fullname" . }}
+  labels:
+    {{- include "dolt.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicas }}
+  serviceName: {{ include "dolt.fullname" . }}-headless
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      {{- include "dolt.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "dolt.selectorLabels" . | nindent 8 }}
+        callbook.arcaven.com/project: {{ .Values.project }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if .Values.metrics.prometheusAnnotations }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ .Values.metrics.port | quote }}
+        prometheus.io/path: /metrics
+        {{- end }}
+        {{- if .Values.metrics.datadog.enabled }}
+        ad.datadoghq.com/dolt.checks: |
+          {
+            "openmetrics": {
+              "instances": [
+                {
+                  "openmetrics_endpoint": "http://%%host%%:{{ .Values.metrics.port }}/metrics",
+                  "namespace": "{{ .Values.metrics.datadog.namespace }}",
+                  "metrics": {{ toJson .Values.metrics.datadog.metrics }},
+                  "tags": ["dolt_project:{{ .Values.project }}"]
+                }
+              ]
+            }
+          }
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "dolt.fullname" . }}
+      affinity:
+        podAntiAffinity:
+          # Hard spread: consolidation/eviction can never take primary and standby together.
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  {{- include "dolt.selectorLabels" . | nindent 18 }}
+              topologyKey: kubernetes.io/hostname
+      initContainers:
+        - name: render-config
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: ["/bin/sh", "/scripts/render-config.sh"]
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+            - name: servercfg
+              mountPath: /etc/dolt/servercfg.d
+      containers:
+        - name: dolt
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- /* dolt_backup's aws:// remote runs in this process; the AWS
+                   SDK needs an explicit region alongside the workload-identity
+                   env vars. */}}
+            - name: AWS_REGION
+              value: {{ .Values.region | quote }}
+            - name: DOLT_ROOT_HOST
+              value: {{ .Values.rootHost | quote }}
+            - name: DOLT_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "existingSecret is required" .Values.existingSecret }}
+                  key: root-password
+          ports:
+            - name: sql
+              containerPort: {{ .Values.sql.port }}
+            - name: cluster
+              containerPort: {{ .Values.clusterPort }}
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+            {{- if .Values.remotesapi.enabled }}
+            - name: remotesapi
+              containerPort: {{ .Values.remotesapi.port }}
+            {{- end }}
+          readinessProbe:
+            tcpSocket:
+              port: sql
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: sql
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 6
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/dolt
+            - name: servercfg
+              mountPath: /etc/dolt/servercfg.d
+            {{- if .Values.tls.enabled }}
+            - name: tls
+              mountPath: /etc/dolt/tls
+              readOnly: true
+            {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: scripts
+          configMap:
+            name: {{ include "dolt.fullname" . }}-config
+            defaultMode: 0555
+        - name: servercfg
+          emptyDir: {}
+        {{- if .Values.tls.enabled }}
+        - name: tls
+          secret:
+            secretName: {{ include "dolt.tlsSecretName" . }}
+        {{- end }}
+  {{- /* volumeClaimTemplates are IMMUTABLE — never template mutable values in
+         here (a backup-plan ternary label once made backup toggles
+         un-appliable; PVC labels are not synced to volume tags by CSI drivers
+         anyway — snapshot enrollment belongs to your platform's backup
+         tooling). Changing this block requires
+         `kubectl delete sts <name> --cascade=orphan` + re-apply. */}}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          {{- include "dolt.selectorLabels" . | nindent 10 }}
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- with .Values.persistence.storageClass }}
+        storageClassName: {{ . }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}

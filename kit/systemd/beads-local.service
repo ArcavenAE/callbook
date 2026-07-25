@@ -1,0 +1,12 @@
+[Unit]
+Description=callbook local beads server (dolt sql-server, loopback only)
+After=network.target
+
+[Service]
+ExecStart=__DOLT__ sql-server --config __SERVER_DIR__/config.yaml
+WorkingDirectory=__SERVER_DIR__
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

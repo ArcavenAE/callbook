@@ -1,0 +1,116 @@
+{{- if .Values.workbench.enabled }}
+{{- /* dolt-workbench: browser SQL workbench + diff/branch UI. ClusterIP only —
+       publish to users exclusively through your authenticating app proxy
+       (Teleport, Pomerium, oauth2-proxy, ...), never on the LoadBalancer.
+       The workbench is two processes (Next.js UI :3000 + GraphQL API :9002 that
+       the BROWSER calls directly); the Caddy sidecar fronts both on one origin
+       so a single proxied app works: /graphql* -> :9002, else -> :3000. */}}
+{{- if .Values.workbench.proxy.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "dolt.fullname" . }}-workbench-proxy
+  labels:
+    {{- include "dolt.labels" . | nindent 4 }}
+    app.kubernetes.io/component: workbench
+data:
+  Caddyfile: |
+    :{{ .Values.workbench.proxy.port }} {
+      handle /graphql* {
+        reverse_proxy 127.0.0.1:{{ .Values.workbench.graphqlPort }}
+      }
+      handle {
+        reverse_proxy 127.0.0.1:{{ .Values.workbench.port }}
+      }
+    }
+---
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dolt.fullname" . }}-workbench
+  labels:
+    {{- include "dolt.labels" . | nindent 4 }}
+    app.kubernetes.io/component: workbench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "dolt.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: workbench
+  template:
+    metadata:
+      labels:
+        {{- include "dolt.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: workbench
+      {{- if .Values.workbench.proxy.enabled }}
+      annotations:
+        checksum/proxy-config: {{ printf ":%v /graphql %v %v" .Values.workbench.proxy.port .Values.workbench.graphqlPort .Values.workbench.port | sha256sum }}
+      {{- end }}
+    spec:
+      containers:
+        - name: workbench
+          image: "{{ .Values.workbench.image.repository }}:{{ .Values.workbench.image.tag }}"
+          {{- if .Values.workbench.proxy.enabled }}
+          env:
+            # Relative URL: the browser resolves it against the proxied app
+            # origin, which the Caddy sidecar routes to the GraphQL process.
+            - name: GRAPHQLAPI_URL
+              value: "/graphql"
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.workbench.port }}
+            - name: graphql
+              containerPort: {{ .Values.workbench.graphqlPort }}
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 5
+          resources:
+            {{- toYaml .Values.workbench.resources | nindent 12 }}
+        {{- if .Values.workbench.proxy.enabled }}
+        - name: proxy
+          image: "{{ .Values.workbench.proxy.image.repository }}:{{ .Values.workbench.proxy.image.tag }}"
+          command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
+          ports:
+            - name: proxy
+              containerPort: {{ .Values.workbench.proxy.port }}
+          readinessProbe:
+            tcpSocket:
+              port: proxy
+            initialDelaySeconds: 3
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          volumeMounts:
+            - name: caddyfile
+              mountPath: /etc/caddy
+        {{- end }}
+      {{- if .Values.workbench.proxy.enabled }}
+      volumes:
+        - name: caddyfile
+          configMap:
+            name: {{ include "dolt.fullname" . }}-workbench-proxy
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dolt.fullname" . }}-workbench
+  labels:
+    {{- include "dolt.labels" . | nindent 4 }}
+    app.kubernetes.io/component: workbench
+spec:
+  selector:
+    {{- include "dolt.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: workbench
+  ports:
+    - name: http
+      port: 80
+      targetPort: {{ .Values.workbench.proxy.enabled | ternary "proxy" "http" }}
+{{- end }}

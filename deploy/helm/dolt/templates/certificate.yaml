@@ -1,0 +1,19 @@
+{{- if .Values.tls.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "dolt.fullname" . }}
+  labels:
+    {{- include "dolt.labels" . | nindent 4 }}
+spec:
+  secretName: {{ include "dolt.tlsSecretName" . }}
+  issuerRef:
+    name: {{ required "tls.issuerRef.name is required when tls.enabled" .Values.tls.issuerRef.name }}
+    kind: {{ .Values.tls.issuerRef.kind }}
+  dnsNames:
+    {{- range .Values.tls.dnsNames }}
+    - {{ . | quote }}
+    {{- end }}
+  privateKey:
+    rotationPolicy: Always
+{{- end }}

@@ -1,0 +1,61 @@
+{{- if .Values.backup.enabled }}
+{{- /* Logical backup: CALL dolt_backup() per database against the acting
+       primary. The procedure executes INSIDE the dolt sql-server process,
+       which holds the cloud credentials via the shared ServiceAccount's
+       workload identity — this job only issues SQL. mysql client: encrypts
+       (--ssl-mode=REQUIRED) without hostname verification (cert covers public
+       names, not pod DNS). Complements (not replaces) volume snapshots. */}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "dolt.fullname" . }}-backup
+  labels:
+    {{- include "dolt.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+spec:
+  schedule: {{ .Values.backup.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 3600
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: dolt-backup
+            app.kubernetes.io/instance: {{ .Release.Name }}
+            app.kubernetes.io/component: backup
+        spec:
+          serviceAccountName: {{ include "dolt.fullname" . }}
+          restartPolicy: Never
+          containers:
+            - name: backup
+              image: "{{ .Values.backup.image.repository }}:{{ .Values.backup.image.tag }}"
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -eu
+                  HOST="{{ include "dolt.fullname" . }}-{{ .Values.primaryPodIndex }}.{{ include "dolt.fullname" . }}-headless.{{ .Release.Namespace }}.svc.cluster.local"
+                  export MYSQL_PWD="${ROOT_PASSWORD}"
+                  M="mysql -h ${HOST} -P {{ .Values.sql.port }} -u root --ssl-mode=REQUIRED -N"
+                  DBS=$(${M} -e "SHOW DATABASES" | grep -Ev '^(information_schema|mysql|performance_schema|dolt_cluster)$')
+                  rc=0
+                  for db in ${DBS}; do
+                    echo "backing up ${db}"
+                    ${M} -e "USE \`${db}\`; CALL dolt_backup('add', 's3', '{{ .Values.backup.remoteUrl }}/${db}');" 2>/dev/null || true
+                    if ! ${M} -e "USE \`${db}\`; CALL dolt_backup('sync', 's3');"; then
+                      echo "BACKUP FAILED: ${db}" >&2
+                      rc=1
+                    fi
+                  done
+                  exit ${rc}
+              env:
+                - name: ROOT_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.existingSecret }}
+                      key: root-password
+{{- end }}

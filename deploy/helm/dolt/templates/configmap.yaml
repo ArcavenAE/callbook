@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "dolt.fullname" . }}-config
+  labels:
+    {{- include "dolt.labels" . | nindent 4 }}
+data:
+  # Rendered into /etc/dolt/servercfg.d/server.yaml by the init container.
+  # bootstrap_role and standby_remotes depend on the pod ordinal, which is only
+  # knowable at runtime — Dolt persists the actual role after first boot, so the
+  # bootstrap values only matter for a fresh volume.
+  render-config.sh: |
+    #!/bin/sh
+    set -eu
+    ORDINAL="${HOSTNAME##*-}"
+    FULLNAME="{{ include "dolt.fullname" . }}"
+    HEADLESS="{{ include "dolt.fullname" . }}-headless.{{ .Release.Namespace }}.svc.cluster.local"
+    REPLICAS="{{ .Values.replicas }}"
+    CFG=/etc/dolt/servercfg.d/server.yaml
+
+    if [ "${ORDINAL}" = "{{ .Values.primaryPodIndex }}" ]; then
+      ROLE="primary"
+    else
+      ROLE="standby"
+    fi
+
+    cat > "${CFG}" <<EOF
+    log_level: info
+
+    behavior:
+      read_only: false
+      autocommit: true
+
+    listener:
+      host: 0.0.0.0
+      port: {{ .Values.sql.port }}
+      max_connections: {{ .Values.sql.maxConnections }}
+    {{- if .Values.tls.enabled }}
+      tls_key: /etc/dolt/tls/tls.key
+      tls_cert: /etc/dolt/tls/tls.crt
+      require_secure_transport: {{ .Values.sql.requireSecureTransport }}
+    {{- end }}
+
+    metrics:
+      host: 0.0.0.0
+      port: {{ .Values.metrics.port }}
+      labels:
+        dolt_project: {{ .Values.project }}
+        pod: ${HOSTNAME}
+    {{- if .Values.remotesapi.enabled }}
+
+    remotesapi:
+      port: {{ .Values.remotesapi.port }}
+    {{- end }}
+    EOF
+
+    # Single-replica instances run without cluster replication entirely.
+    if [ "${REPLICAS}" -gt 1 ]; then
+      {
+        echo ""
+        echo "cluster:"
+        echo "  standby_remotes:"
+        i=0
+        while [ "$i" -lt "${REPLICAS}" ]; do
+          if [ "$i" != "${ORDINAL}" ]; then
+            echo "  - name: ${FULLNAME}-${i}"
+            echo "    remote_url_template: http://${FULLNAME}-${i}.${HEADLESS}:{{ .Values.clusterPort }}/{database}"
+          fi
+          i=$((i + 1))
+        done
+        echo "  bootstrap_role: ${ROLE}"
+        echo "  bootstrap_epoch: {{ .Values.bootstrapEpoch }}"
+        echo "  remotesapi:"
+        echo "    port: {{ .Values.clusterPort }}"
+      } >> "${CFG}"
+    fi
+    echo "rendered server.yaml for ${HOSTNAME} (bootstrap_role=${ROLE}, replicas=${REPLICAS})"
