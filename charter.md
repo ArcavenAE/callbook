@@ -123,6 +123,18 @@ Spectrum territory), and a first-class growth-path doc
 (solo-local → team compose → cloud → federated) — the recipe/template
 heart of the project, currently only implicit across docs.
 
+### F9: Operational layers — marvel-managed vs standalone vs parts
+
+Founder idea (2026-07-25): the moving parts (dolt instances, enrollment
+artifacts, federation peering) should be operable at three levels —
+marvel-managed (tracker as a control-plane resource, reconciled
+failover), callbook-standalone (launchd/systemd local services, the
+as-built shape in `docs/reference/`), and individual parts by hand.
+Independence rule holds: callbook never requires marvel. Full capture +
+sub-questions: orc `_kos/ideas/callbook-operational-layers.md`.
+Crystallization trigger: first marvel-managed team wanting a tracker at
+bring-up, or the first fumbled manual failover.
+
 ### F2: Kit maturity
 
 `kit/*.sh` are extracted-and-generalized first versions, not yet

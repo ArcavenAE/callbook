@@ -75,7 +75,9 @@ helm install myproject deploy/helm/dolt -f your-values.yaml
 
 Design rationale and the full decision record:
 [docs/design/dolt-service.md](docs/design/dolt-service.md). Per-cloud
-notes: [deploy/clouds/](deploy/clouds/).
+notes: [deploy/clouds/](deploy/clouds/). As-built references — the
+running local instance and the verified k8s wiring this was extracted
+from: [docs/reference/](docs/reference/).
 
 ## Opinions
 
