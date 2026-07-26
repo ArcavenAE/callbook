@@ -168,7 +168,7 @@ proxied stack, restricted-tier enrollment), offered back as PRs.
 Trigger: when the upstream-issue path stalls on something load-bearing.
 Until then: stock bd, pinned versions, issues filed.
 
-### F6: Upstream gaps (tracked)
+### F6: Upstream gaps (tracked) [contribution vehicle live 2026-07-26]
 
 (a) federation sync always presents root to remotesapi instead of peer
 credentials; (b) proxied-server stack should probe before
@@ -176,6 +176,12 @@ credentials; (b) proxied-server stack should probe before
 unlocks restricted-tier enrollment; (c) rw-tier first-attach of an
 existing database needs `dolt_remote()` coverage. File upstream, link
 issue numbers here.
+
+Contribution vehicle: **ArcavenAE/beads** (fork of gastownhall/beads,
+tier-2 shape: origin=fork, upstream=gastownhall). Intent is
+contribute-back — issues with repro first, PRs where we can carry the
+fix. This is NOT the F5 feature-fork; F5's trigger is unchanged.
+Work-queue anchor: aae-orc-9h3f.
 
 ---
 
