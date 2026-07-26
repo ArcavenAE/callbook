@@ -5,7 +5,7 @@
 > for a collaborator who was present but does not persist. Follows the
 > kos process: Orient → Ideate → Question → Probe → Harvest → Promote.
 
-Last updated: 2026-07-25 (scaffold session)
+Last updated: 2026-07-25 (scaffold session + founder scope framing: F1 refined, F7-F8 opened)
 
 ---
 
@@ -91,13 +91,37 @@ Full model: `docs/vision.md`, `docs/enrollment.md`.
 
 *Actively open.*
 
-### F1: What IS this repo — solution, recipe, or product?
+### F1: What IS this repo — solution, recipe, or product? [refined 2026-07-25]
 
-Deliberately unresolved (the founding instruction named it "part
-solution, part recipe/template"). Candidate identities: (a) a docs+kit
-companion to beads, (b) a distribution ("the callbook stack") with
-versioned releases, (c) the seed of a hosted offering. Let usage
-decide; revisit when someone other than us adopts it.
+Partially resolved by the founder's framing: **callbook is the project
+name for the whole program** — beads + identity enrollment + team,
+local, and federated instances + attaching beads to other projects
+(vsdd-factory first) + tools for anyone to set any of this up
+themselves, on any substrate, and grow it for their team. The repo is
+that project's home. Still open: whether the deliverable form becomes
+a versioned distribution ("the callbook stack") or stays docs+kit.
+Revisit when someone other than us adopts it.
+
+### F7: Project attachment playbooks (vsdd-factory first)
+
+The un-ported §4 of the origin proposal: how an existing project
+adopts callbook for its work-management plane. One project = one bd
+workspace; roadmaps → epics, plans → issues, tasks → tasks; artifacts
+may cite bead IDs but the tracker never stores project content — a
+project with callbook disabled loses task tracking, nothing else.
+vsdd-factory is the first case (deliberately complementary to its
+derived-index traceability decision, upstream #671); teaming across
+forks = shared database or federation. Needs: a docs/attaching.md
+playbook + the vsdd-factory pilot.
+
+### F8: Substrates beyond Kubernetes and the growth path
+
+Named scope not yet in deploy/: plain-VM/EC2 recipe (systemd +
+dolt sql-server + certbot/ACME TLS), DigitalOcean, Cloudflare
+(genuinely open — no obvious TCP-passthrough for 3306; Tunnel or
+Spectrum territory), and a first-class growth-path doc
+(solo-local → team compose → cloud → federated) — the recipe/template
+heart of the project, currently only implicit across docs.
 
 ### F2: Kit maturity
 
