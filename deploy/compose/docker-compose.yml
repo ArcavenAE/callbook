@@ -1,10 +1,10 @@
 # callbook: single-node shared tracker for a small team (or a beefy homelab).
-# One writer, no replication, no failover — when you outgrow this, move to
+# One writer, no replication, no failover. When you outgrow this, move to
 # the Helm chart (dolt clone/push migrates the data; see docs/design/).
 #
 #   DOLT_ROOT_PASSWORD=... docker compose up -d
 #
-# TLS: this recipe assumes you terminate nothing — Dolt serves plaintext on
+# TLS: this recipe assumes you terminate nothing; Dolt serves plaintext on
 # loopback / a private network. If this crosses a network boundary you don't
 # trust, put real certs in ./tls and uncomment the listener TLS lines in
 # ./servercfg/server.yaml (TLS from day one is the callbook rule for anything
@@ -27,7 +27,7 @@ services:
     image: dolthub/dolt-workbench:0.3.73
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3000:3000"   # browser UI — keep on loopback or behind your auth proxy
+      - "127.0.0.1:3000:3000"   # browser UI: keep on loopback or behind your auth proxy
     depends_on:
       - dolt
 

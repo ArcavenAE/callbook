@@ -2,17 +2,17 @@
 
 **The call book for distributed agent companies.** Work and task tracking
 for teams of humans and AI agents, built on [beads](https://github.com/steveyegge/beads)
-(`bd`) and [Dolt](https://www.dolthub.com/) — version-controlled, local-first,
+(`bd`) and [Dolt](https://www.dolthub.com/): version-controlled, local-first,
 federable, and honest about who did what.
 
 In a theater, the call book is the stage manager's record of calls: who is
 called, for what, and when. That is exactly what a distributed agent team
-needs — not another project-management SaaS, but a shared, diffable,
+needs, not another project-management SaaS, but a shared, diffable,
 branch-aware record of the work, one that agents and humans write to with
 equal standing and that survives any one machine, cloud, or company.
 
 callbook is the opinionated companion to
-[beads.gascity.com](https://beads.gascity.com) — the same tool, applied to
+[beads.gascity.com](https://beads.gascity.com): the same tool, applied to
 *any* project, with deployment recipes from a laptop to a replicated
 cloud service, and a collaboration model for the day your "team" is three
 humans and forty agents.
@@ -24,12 +24,12 @@ callbook is part solution, part recipe. Three layers, each useful alone:
 | Layer | What it gives you | Where |
 |---|---|---|
 | **The vision** | How humans and agents share one tracker: actor identity, name pools, enrollment, attribution, the path to first-class agent identity | [docs/vision.md](docs/vision.md) |
-| **The kit** | Scripts that stand up a local beads instance the way we run ours — install, doctor, enroll | [kit/](kit/) |
+| **The kit** | Scripts that stand up a local beads instance the way we run ours: install, doctor, enroll | [kit/](kit/) |
 | **The recipes** | Deployment shapes: solo laptop → small team → replicated, TLS-required Dolt service on Kubernetes (any cloud) | [deploy/](deploy/), [docs/design/dolt-service.md](docs/design/dolt-service.md) |
 
 ## The working modes
 
-All of these are supported shapes, not aspirations — the production
+All of these are supported shapes, not aspirations; the production
 recipe has been verified end-to-end on a live cluster:
 
 - **Solo, local-only.** A local bd instance; no cloud dependency at all.
@@ -39,7 +39,7 @@ recipe has been verified end-to-end on a live cluster:
   per-machine bootstrap.
 - **Fork / parallel work.** Your own database on the shared instance, or
   your own instance entirely.
-- **Federation.** Peer trackers syncing over the dolt remote protocol —
+- **Federation.** Peer trackers syncing over the dolt remote protocol,
   across teams, orgs, or forks.
 - **Disconnected.** `dolt clone` a working copy, work offline, push/pull
   on reconnect. Air-gap-tolerant channels (git, file, S3 remotes) need no
@@ -75,9 +75,9 @@ helm install myproject deploy/helm/dolt -f your-values.yaml
 
 Design rationale and the full decision record:
 [docs/design/dolt-service.md](docs/design/dolt-service.md). Per-cloud
-notes: [deploy/clouds/](deploy/clouds/). As-built references — the
+notes: [deploy/clouds/](deploy/clouds/). As-built references (the
 running local instance and the verified k8s wiring this was extracted
-from: [docs/reference/](docs/reference/).
+from): [docs/reference/](docs/reference/).
 
 ## Opinions
 
@@ -98,10 +98,10 @@ callbook is opinionated. The load-bearing ones:
 
 ## Relationship to beads
 
-callbook deploys and operates stock `bd` + Dolt — it is not a fork. Where
+callbook deploys and operates stock `bd` + Dolt. It is not a fork. Where
 we hit gaps (federation credential handling, restricted-tier enrollment,
 TLS-capable releases), we file and track upstream issues; a maintained
-fork adding features we need — offered back upstream — is a likely future,
+fork adding features we need (offered back upstream) is a likely future,
 recorded in the [charter](charter.md).
 
 ## Status
@@ -113,4 +113,4 @@ bedrock vs frontier.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

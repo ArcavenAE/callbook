@@ -1,6 +1,6 @@
 # callbook Charter
 
-> Re-introduction document for callbook — work/task tracking for
+> Re-introduction document for callbook: work/task tracking for
 > distributed agent+human teams, built on beads + Dolt. Restores context
 > for a collaborator who was present but does not persist. Follows the
 > kos process: Orient → Ideate → Question → Probe → Harvest → Promote.
@@ -18,7 +18,7 @@ provides the data model (issues as versioned rows in Dolt, git
 semantics, local-first). What's missing is everything around it: how
 identities enroll, how instances connect and federate, how the service
 deploys per cloud, and an opinionated collaboration model that makes
-the whole thing coherent for any project — not just the ecosystem beads
+the whole thing coherent for any project, not just the ecosystem beads
 grew up in.
 
 callbook packages that: vision docs, a local-instance kit, and
@@ -30,7 +30,7 @@ deployment (genericized and scrubbed of its origin org).
 1. **Local-first, cloud-optional.** The kit works with zero cloud
    access; enrollment is an upgrade, not a prerequisite.
 2. **Names are the durable identity.** Actor names outlive sessions,
-   credentials, and (eventually) the honor system — chosen once, they
+   credentials, and (eventually) the honor system. Chosen once, they
    become authenticated token subjects when first-class agent identity
    arrives.
 3. **Enrollment terminates in a per-identity artifact.** Never in
@@ -41,7 +41,7 @@ deployment (genericized and scrubbed of its origin org).
 
 ## Non-Goals
 
-- **Not a fork of beads** (today — see F5).
+- **Not a fork of beads** (today; see F5).
 - **Not a hosted service.** Recipes and tooling; users run it.
 - **Not a PM methodology.** callbook tracks calls; process is the
   team's business.
@@ -77,7 +77,7 @@ stack issues the CREATE unconditionally on every open and Dolt denies
 it without global CREATE even when the database exists (verified on
 2.2.2).
 
-### B3: The actor model — names + pools + tiers
+### B3: The actor model (names + pools + tiers)
 
 Humans are actors under their own handles; each person's agents draw
 durable names from a recorded name pool (`BEADS_ACTOR`), with `node_id`
@@ -91,10 +91,10 @@ Full model: `docs/vision.md`, `docs/enrollment.md`.
 
 *Actively open.*
 
-### F1: What IS this repo — solution, recipe, or product? [refined 2026-07-25]
+### F1: What IS this repo (solution, recipe, or product)? [refined 2026-07-25]
 
 Partially resolved by the founder's framing: **callbook is the project
-name for the whole program** — beads + identity enrollment + team,
+name for the whole program**: beads + identity enrollment + team,
 local, and federated instances + attaching beads to other projects
 (vsdd-factory first) + tools for anyone to set any of this up
 themselves, on any substrate, and grow it for their team. The repo is
@@ -107,7 +107,7 @@ Revisit when someone other than us adopts it.
 The un-ported §4 of the origin proposal: how an existing project
 adopts callbook for its work-management plane. One project = one bd
 workspace; roadmaps → epics, plans → issues, tasks → tasks; artifacts
-may cite bead IDs but the tracker never stores project content — a
+may cite bead IDs but the tracker never stores project content; a
 project with callbook disabled loses task tracking, nothing else.
 vsdd-factory is the first case (deliberately complementary to its
 derived-index traceability decision, upstream #671); teaming across
@@ -118,15 +118,16 @@ playbook + the vsdd-factory pilot.
 
 Named scope not yet in deploy/: plain-VM/EC2 recipe (systemd +
 dolt sql-server + certbot/ACME TLS), DigitalOcean, Cloudflare
-(genuinely open — no obvious TCP-passthrough for 3306; Tunnel or
+(genuinely open: no obvious TCP-passthrough for 3306; Tunnel or
 Spectrum territory), and a first-class growth-path doc
-(solo-local → team compose → cloud → federated) — the recipe/template
-heart of the project, currently only implicit across docs.
+(solo-local → team compose → cloud → federated). That growth-path doc is
+the recipe/template heart of the project, currently only implicit across
+docs.
 
-### F9: Operational layers — marvel-managed vs standalone vs parts
+### F9: Operational layers (marvel-managed vs standalone vs parts)
 
 Founder idea (2026-07-25): the moving parts (dolt instances, enrollment
-artifacts, federation peering) should be operable at three levels —
+artifacts, federation peering) should be operable at three levels:
 marvel-managed (tracker as a control-plane resource, reconciled
 failover), callbook-standalone (launchd/systemd local services, the
 as-built shape in `docs/reference/`), and individual parts by hand.
@@ -147,7 +148,7 @@ inline once the upstream gap moves.
 ### F3: Per-cloud verification
 
 AWS is drilled; GCP/AKS notes are honest translations, untested. The
-logical-backup remote is `aws://`-shaped — the GCP/Azure story
+logical-backup remote is `aws://`-shaped; the GCP/Azure story
 (S3-compatible endpoint vs snapshots+git-channel) is the weakest
 corner. One verified deployment each would promote them.
 
@@ -172,14 +173,14 @@ Until then: stock bd, pinned versions, issues filed.
 
 (a) federation sync always presents root to remotesapi instead of peer
 credentials; (b) proxied-server stack should probe before
-`CREATE DATABASE` (the direct-server stack already does) — also what
-unlocks restricted-tier enrollment; (c) rw-tier first-attach of an
+`CREATE DATABASE` (the direct-server stack already does), which is also
+what unlocks restricted-tier enrollment; (c) rw-tier first-attach of an
 existing database needs `dolt_remote()` coverage. File upstream, link
 issue numbers here.
 
 Contribution vehicle: **ArcavenAE/beads** (fork of gastownhall/beads,
 tier-2 shape: origin=fork, upstream=gastownhall). Intent is
-contribute-back — issues with repro first, PRs where we can carry the
+contribute-back: issues with repro first, PRs where we can carry the
 fix. This is NOT the F5 feature-fork; F5's trigger is unchanged.
 Work-queue anchor: aae-orc-9h3f.
 
@@ -213,3 +214,4 @@ only shape that works.
 | Session | Date | Outcomes |
 |---------|------|----------|
 | Scaffold | 2026-07-25 | Repo created. README, vision, enrollment, local-instance, dolt-service design record; Helm chart extracted + scrubbed (namePrefix parameterized, org label → callbook.arcaven.com, Datadog optional, storage-class neutral); kit v0 (install/doctor/enroll + launchd/systemd); compose recipe; AWS/GCP/Azure cloud notes. B1–B3 set, F1–F6 opened, G1–G3 ruled. Origin: generic extraction of a deployed per-project Dolt platform service + its beads-enrollment proposal. bd: aae-orc-z2t8. |
+| Public-readiness pass | 2026-07-26 | Brand sweep: every em dash removed repo-wide (155 lines touched; gates now enforce absence via byte-escape grep). Public furniture: CONTRIBUTING.md, SECURITY.md, CI (harden-runner + checkout SHA-pinned; shellcheck, helm lint, two template renders, style/leak gate). just check mirrors CI and caught its own gaps (default render needed issuerRef; org-token grep self-matched; both fixed). Repo metadata: description de-dashed, 9 topics set (ai-agents, issue-tracking, task-management, dolt, kubernetes, helm, local-first, self-hosted, beads). Full-history scrub verified (only authorship matches). Still private; flip is a one-command decision. |

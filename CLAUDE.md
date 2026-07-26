@@ -1,4 +1,4 @@
-# CLAUDE.md — callbook
+# CLAUDE.md: callbook
 
 Work/task tracking for distributed agent+human teams: beads (bd) + Dolt,
 packaged as vision docs + local-instance kit + production deploy recipes.
@@ -8,11 +8,11 @@ The opinionated companion to beads.gascity.com, for any project.
 > PUBLIC and its content was extracted from a private corporate
 > deployment. NEVER introduce the origin org's name, domains, zone names,
 > environment identifiers, ticket prefixes, or internal hostnames into
-> this repo — in code, docs, comments, commit messages, issues, or PRs.
+> this repo: in code, docs, comments, commit messages, issues, or PRs.
 > Genericize at the keystroke: "your credential store", "your
 > authenticating proxy", `dolt-<project>.trackers.example.com`. When
 > porting future material from the origin deployment, scrub BEFORE the
-> first commit — git history is forever here.
+> first commit. Git history is forever here.
 
 @charter.md
 

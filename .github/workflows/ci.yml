@@ -1,0 +1,46 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: shellcheck kit
+        run: shellcheck kit/*.sh
+
+      - name: helm lint
+        run: helm lint deploy/helm/dolt
+
+      - name: helm template (defaults)
+        run: helm template test deploy/helm/dolt --set existingSecret=dummy --set tls.issuerRef.name=example > /dev/null
+
+      - name: helm template (all features on)
+        run: >
+          helm template test deploy/helm/dolt
+          --set existingSecret=dummy
+          --set backup.enabled=true
+          --set backup.remoteUrl=aws://[table:bucket]/dolt-test
+          --set workbench.enabled=true
+          --set tls.issuerRef.name=letsencrypt
+          > /dev/null
+
+      - name: no em dashes or org leaks
+        run: |
+          set -euo pipefail
+          ! grep -rn "$(printf '\342\200\224')" --exclude-dir=.git . || { echo "em dash found"; exit 1; }
+          ! grep -rniE "18{1}98|e98[dsp]|ms{1}sci" --exclude-dir=.git . || { echo "org token found"; exit 1; }

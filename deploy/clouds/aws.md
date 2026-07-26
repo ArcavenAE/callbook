@@ -1,6 +1,6 @@
 # AWS (EKS) notes
 
-The most-verified path — the Helm chart was extracted from a service
+The most-verified path: the Helm chart was extracted from a service
 deployed and drilled on EKS. What you supply around the chart:
 
 ## LoadBalancer
@@ -17,7 +17,7 @@ service:
     external-dns.alpha.kubernetes.io/hostname: dolt-myproject.trackers.example.com
 ```
 
-Cost: one NLB per project, order-of $16/mo + LCU — linear, no
+Cost: one NLB per project, order-of $16/mo + LCU: linear, no
 port-multiplexing complexity.
 
 ## DNS + certificate
@@ -31,7 +31,7 @@ cert-manager issuer. Full chain in
 
 ## Storage
 
-`persistence.storageClass: gp3` (encrypted). Not EFS — Dolt is
+`persistence.storageClass: gp3` (encrypted). Not EFS: Dolt is
 single-writer per data directory and multi-attach storage is
 unsupported.
 
@@ -46,7 +46,7 @@ Two layers:
    (partition key `db`), IAM scoped to the per-project prefix
    `aws://[table:bucket]/dolt-<project>/<db>`. Grant via IRSA on the
    chart's ServiceAccount (`serviceAccount.annotations`). Restore is
-   `dolt clone aws://...` from any credentialed host — drill it.
+   `dolt clone aws://...` from any credentialed host; drill it.
 
 ## Credentials
 
@@ -60,5 +60,5 @@ export CALLBOOK_CRED_COMMAND='aws ssm get-parameter --with-decryption --query Pa
 
 ## Node consolidation (Karpenter)
 
-Safe with the chart's required anti-affinity + PDB + warm standby —
+Safe with the chart's required anti-affinity + PDB + warm standby;
 consolidation can never evict primary and standby together.

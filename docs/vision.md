@@ -1,6 +1,6 @@
 # Vision: humans and agents on one call book
 
-> How a distributed team — humans and AI agents together — shares a single
+> How a distributed team (humans and AI agents together) shares a single
 > work tracker without pretending the agents are people or treating them
 > as disposable tooling.
 
@@ -12,8 +12,8 @@ Agent teams break conventional trackers in three ways:
    forty tomorrow; sessions are killed freely. Per-seat SaaS licensing and
    manual account lifecycle don't survive contact with that.
 2. **Attribution.** When an agent closes a task, "who did the work" must
-   be recorded durably — for trust, for review, for learning which agents
-   are good at what — even when the agent itself lived for twenty minutes.
+   be recorded durably (for trust, for review, for learning which agents
+   are good at what), even when the agent itself lived for twenty minutes.
 3. **Locality.** Agents run where the work is: laptops, CI, ephemeral
    sandboxes, air-gapped environments. A tracker that requires a live
    connection to a central service excludes half the fleet.
@@ -28,9 +28,9 @@ identities enroll, how instances connect, and how the whole thing deploys.
 The identity industry today treats agent identity as a governance label on
 top of shared credentials: actors are declarative strings, ephemeral
 workers draw names from a pool, and nothing binds "who did the work" to
-"who may connect." We adopt that layer because it works today — and we
+"who may connect." We adopt that layer because it works today, and we
 record the position that it is a stopgap. **First-class identity for
-agents — authenticated principals, not honor-system labels — is the way of
+agents (authenticated principals, not honor-system labels) is the way of
 the future.**
 
 Every callbook pattern is shaped so that when the ecosystem catches up,
@@ -38,8 +38,8 @@ migration is a re-pointing, not a re-architecture:
 
 - **Actor names are chosen once and become token subjects later.** The
   *names* are the durable identity; only their proof changes.
-- **Enrollment always terminates in a per-identity artifact** — a policy
-  attachment, a named SQL account, or (later) a minted token — never in
+- **Enrollment always terminates in a per-identity artifact**: a policy
+  attachment, a named SQL account, or (later) a minted token, never in
   copying a shared secret by hand.
 - **The convergence point is the credential-command contract bd already
   ships** (`BEADS_DOLT_CREDENTIAL_COMMAND`, token-as-username,
@@ -57,12 +57,12 @@ identity.
 
 ### A person's agent troupe
 
-Each person maintains a **name pool** — a set of durable, memorable actor
+Each person maintains a **name pool**: a set of durable, memorable actor
 names recorded in the project docs. Agents draw names from the pool:
 
 - Each agent session sets `BEADS_ACTOR` to its pool name.
 - Each distinct store sets its own `node_id`.
-- Ephemeral agents are fresh sessions under a pool name — kill freely;
+- Ephemeral agents are fresh sessions under a pool name. Kill freely;
   the name persists, the session doesn't.
 
 This gives attribution and lease-safety without credential churn. The
@@ -70,13 +70,13 @@ agents share the person's project credential; the *names* carry identity.
 When authenticated agent principals arrive (see phases below), each pool
 name becomes a token subject and history stays coherent.
 
-Pick names you can say out loud in standup. A pool is a cast list —
-theater troupes, carnival performers, whatever register your project
-enjoys — as long as names are stable and never reused across people.
+Pick names you can say out loud in standup. A pool is a cast list
+(theater troupes, carnival performers, whatever register your project
+enjoys), as long as names are stable and never reused across people.
 
 ### Long-lived service agents
 
-CI runners and standing automations are not troupe members — they get
+CI runners and standing automations are not troupe members; they get
 their own named account (e.g. `<project>_agent_ci`), individually
 scoped and individually revocable. When one is compromised or retired,
 you revoke *it*, not the team.
@@ -87,7 +87,7 @@ Enrollment means: an identity (human or agent) gains a *scoped,
 revocable* path to a project's tracker. Four phases; each is useful
 alone, and none requires the next.
 
-### Phase 0 — convention (now)
+### Phase 0: convention (now)
 
 Documentation and discipline only: humans enroll by receiving a
 per-project credential-read grant from wherever your credentials live
@@ -96,14 +96,14 @@ shares that credential under pool names; service agents get named
 accounts. Revocation is per-human (detach the grant) or per-service-agent
 (drop the account).
 
-### Phase 1 — the local-instance kit
+### Phase 1: the local-instance kit
 
-Everyone — including contributors who will never touch your cloud — gets
+Everyone, including contributors who will never touch your cloud, gets
 a local beads instance, and *enrollment attaches that instance to the
 shared tracker*. This is [kit/](../kit/): install, doctor, enroll. The
 kit works with zero cloud access; enrollment is an upgrade.
 
-### Phase 2 — ephemeral credential minting
+### Phase 2: ephemeral credential minting
 
 A secrets engine (OpenBao/Vault database backend) minting short-TTL SQL
 users against the shared instance: humans via OIDC login, in-cluster
@@ -112,13 +112,13 @@ expire; revocation is automatic. Operational cares (orphan-lease sweeps,
 post-failover lease self-healing, the grant set minted users need) are
 recorded in [enrollment.md](enrollment.md).
 
-### Phase 3 — the gateway (convergence)
+### Phase 3: the gateway (convergence)
 
 A gateway in front of the tracker verifies short-lived tokens presented
 as SQL usernames (the bd client contract already exists), routes per
 project, and owns schema. Actor names become authenticated subjects; the
 Phase-0 honor system retires. Build trigger: external-team tenancy or a
-per-actor-authentication requirement — not before.
+per-actor-authentication requirement, not before.
 
 ## How work flows
 
@@ -145,5 +145,5 @@ per-actor-authentication requirement — not before.
   opinions. Gaps get upstream issues first; a feature fork that tracks
   upstream and offers changes back is a recorded likely-future.
 - **Not a hosted service.** Recipes and tooling; you run it.
-- **Not a project-management methodology.** It tracks calls — who,
+- **Not a project-management methodology.** It tracks calls: who,
   what, when, blocked-by. What your team does with that is your process.

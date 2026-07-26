@@ -36,7 +36,7 @@ fi
 if [[ "${BEADS_DOLT_AUTO_START:-}" == "false" ]]; then
   ok "client env loaded (BEADS_DOLT_AUTO_START=false)"
 else
-  warn "client env not loaded — non-interactive shells (git hooks!) may fall back to embedded mode; source ~/.beads/client-env.sh"
+  warn "client env not loaded: non-interactive shells (git hooks!) may fall back to embedded mode; source ~/.beads/client-env.sh"
 fi
 
 # server reachability
@@ -50,7 +50,7 @@ fi
 if [[ -n "${BEADS_ACTOR:-}" ]]; then
   ok "actor: $BEADS_ACTOR"
 else
-  warn "BEADS_ACTOR not set — work will be attributed to your OS user; agents MUST set a pool name (docs/vision.md)"
+  warn "BEADS_ACTOR not set: work will be attributed to your OS user; agents MUST set a pool name (docs/vision.md)"
 fi
 
 # enrollments (shared-tracker attachments)
@@ -74,7 +74,7 @@ if [[ -d "$ENROLL_DIR" ]] && compgen -G "$ENROLL_DIR/*.env" >/dev/null; then
     fi
   done
 else
-  ok "no shared-tracker enrollments (local-only mode — a fully supported posture)"
+  ok "no shared-tracker enrollments (local-only mode, a fully supported posture)"
 fi
 
 exit $rc

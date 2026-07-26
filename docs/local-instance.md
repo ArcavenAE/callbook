@@ -1,8 +1,8 @@
 # The local instance
 
 > Runbook for the Phase-1 kit: a local beads instance on every
-> contributor's machine — including contributors who will never touch
-> your cloud — with enrollment as an optional upgrade.
+> contributor's machine (including contributors who will never touch
+> your cloud), with enrollment as an optional upgrade.
 
 ## Why a local shared server (and not embedded-per-project)
 
@@ -14,7 +14,7 @@ with real use:
   only.
 - Multiple concurrent sessions (several agents + you) write safely
   through one server instead of racing on embedded stores.
-- The same connection model as the cloud tracker — moving a project from
+- The same connection model as the cloud tracker. Moving a project from
   local to shared later is a config change, not a migration of kind.
 
 bd's storage engine is Dolt everywhere, including locally; SQLite
@@ -73,7 +73,7 @@ Spelled out, because it is a first-class mode and not a degraded one:
   phones home. Ever.
 - **Working copies of a shared database.**
   `dolt clone https://<tracker-host>:8000/<db>` over remotesapi (the ro
-  tier suffices — it carries `CLONE_ADMIN`); work offline; `dolt pull` /
+  tier suffices; it carries `CLONE_ADMIN`); work offline; `dolt pull` /
   `dolt push` or `bd federation sync` on reconnect. Conflicts pause for
   manual resolution by default (`--strategy theirs|ours` to
   auto-resolve).
@@ -89,10 +89,10 @@ Spelled out, because it is a first-class mode and not a degraded one:
 Recorded from live testing of this exact setup:
 
 - **Per-machine bootstrap is real.** The first attach of a machine to an
-  existing shared database needs the admin tier today (upstream gap —
+  existing shared database needs the admin tier today (upstream gap;
   see enrollment.md). Plan the first attach; after that, rw is enough.
 - **Env-var precedence matters.** bd's server-discovery env vars must be
-  set before hooks and non-interactive shells run — put them in the
+  set before hooks and non-interactive shells run; put them in the
   client env file the installer writes, not in your interactive rc
   only. Git hooks run in non-interactive shells and will silently fall
   back to embedded mode if they can't see the server config.

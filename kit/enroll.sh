@@ -37,7 +37,7 @@ done
 
 ACCOUNT="${PROJECT}_${TIER}"
 
-# 1. fetch the credential (fail closed — no fallback to prompts or defaults)
+# 1. fetch the credential (fail closed; no fallback to prompts or defaults)
 CRED_CMD="${CALLBOOK_CRED_COMMAND//\{project\}/$PROJECT}"
 CRED_CMD="${CRED_CMD//\{account\}/$ACCOUNT}"
 say "fetching credential for $ACCOUNT"
@@ -48,9 +48,9 @@ PASSWORD="$(eval "$CRED_CMD")" || fail "credential fetch failed (command: $CRED_
 if command -v mysql >/dev/null 2>&1; then
   say "verifying TLS connection as $ACCOUNT@$HOST"
   MYSQL_PWD="$PASSWORD" mysql -h "$HOST" -P 3306 -u "$ACCOUNT" --ssl-mode=REQUIRED -e "SELECT 1" >/dev/null \
-    || fail "connection check failed — wrong credential, no network, or TLS problem"
+    || fail "connection check failed: wrong credential, no network, or TLS problem"
 else
-  say "mysql client not found — skipping connection pre-check"
+  say "mysql client not found; skipping connection pre-check"
 fi
 
 # 3. write per-machine connection config (0600, outside any repo)
@@ -80,11 +80,11 @@ fi
 
 # 5. actor identity
 if [[ -n "$ACTOR" ]]; then
-  say "actor: $ACTOR — ensure this name is in the project's name pool (docs/vision.md)"
+  say "actor: $ACTOR; ensure this name is in the project's name pool (docs/vision.md)"
   grep -q "BEADS_ACTOR" "$ENV_FILE" || echo "export BEADS_ACTOR=$ACTOR" >> "$ENV_FILE"
 else
   say "no --actor given; humans default to their OS user, agents MUST set a pool name"
 fi
 
 say "enrolled. First attach of a NEW database from this machine may need --tier admin"
-say "(known upstream gap — docs/enrollment.md). Verify with kit/doctor.sh."
+say "(known upstream gap: docs/enrollment.md). Verify with kit/doctor.sh."

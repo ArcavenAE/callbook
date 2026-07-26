@@ -69,7 +69,7 @@ if [[ ! -f "$CLIENT_ENV" ]]; then
   cat > "$CLIENT_ENV" <<EOF
 # callbook kit: point every bd invocation at the local shared server.
 # Sourced from your shell rc AND consumed by git hooks / non-interactive
-# shells — keep it dependency-free.
+# shells. Keep it dependency-free.
 export BEADS_DOLT_AUTO_START=false
 export BEADS_DOLT_SERVER_HOST=$SERVER_HOST
 export BEADS_DOLT_SERVER_PORT=$SERVER_PORT
@@ -120,14 +120,14 @@ esac
 # --- 5. smoke test -------------------------------------------------------------
 if (command -v nc >/dev/null 2>&1 && nc -z "$SERVER_HOST" "$SERVER_PORT" 2>/dev/null); then
   SMOKE="$(mktemp -d)"
-  say "server is up — running bd smoke test in $SMOKE"
+  say "server is up: running bd smoke test in $SMOKE"
   ( cd "$SMOKE" && \
     BEADS_DOLT_AUTO_START=false BEADS_DOLT_SERVER_HOST=$SERVER_HOST BEADS_DOLT_SERVER_PORT=$SERVER_PORT \
     bd init >/dev/null && bd create --title="kit smoke test" >/dev/null && \
-    say "smoke test passed" ) || say "smoke test FAILED — run kit/doctor.sh"
+    say "smoke test passed" ) || say "smoke test FAILED; run kit/doctor.sh"
   rm -rf "$SMOKE"
 else
-  say "server not running — skipped smoke test (start it, then run kit/doctor.sh)"
+  say "server not running; skipped smoke test (start it, then run kit/doctor.sh)"
 fi
 
 say "done. Next: source $CLIENT_ENV (or open a new shell), then kit/doctor.sh"

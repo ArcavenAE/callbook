@@ -2,7 +2,7 @@
 {{- /* Logical backup: CALL dolt_backup() per database against the acting
        primary. The procedure executes INSIDE the dolt sql-server process,
        which holds the cloud credentials via the shared ServiceAccount's
-       workload identity — this job only issues SQL. mysql client: encrypts
+       workload identity; this job only issues SQL. mysql client: encrypts
        (--ssl-mode=REQUIRED) without hostname verification (cert covers public
        names, not pod DNS). Complements (not replaces) volume snapshots. */}}
 apiVersion: batch/v1

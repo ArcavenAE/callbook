@@ -7,7 +7,7 @@ metadata:
 data:
   # Rendered into /etc/dolt/servercfg.d/server.yaml by the init container.
   # bootstrap_role and standby_remotes depend on the pod ordinal, which is only
-  # knowable at runtime — Dolt persists the actual role after first boot, so the
+  # knowable at runtime. Dolt persists the actual role after first boot, so the
   # bootstrap values only matter for a fresh volume.
   render-config.sh: |
     #!/bin/sh

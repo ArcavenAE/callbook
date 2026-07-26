@@ -1,6 +1,6 @@
 # GCP (GKE) notes
 
-Untested translation of the AWS recipe — the chart itself is
+Untested translation of the AWS recipe; the chart itself is
 cloud-neutral; these are the seams. Verify and PR corrections.
 
 - **LoadBalancer:** GKE provisions a TCP passthrough Network Load
@@ -11,9 +11,9 @@ cloud-neutral; these are the seams. Verify and PR corrections.
   delegation pattern (and `cnameStrategy: Follow`) works identically if
   your public zone is separate from the cluster's zone.
 - **Storage:** `persistence.storageClass` → a `pd-ssd`-backed class with
-  encryption. Not Filestore (NFS) — single-writer constraint.
+  encryption. Not Filestore (NFS): single-writer constraint.
 - **Workload identity:** GKE Workload Identity on the ServiceAccount
-  replaces IRSA. Dolt's cloud remotes are `aws://`-shaped — for logical
+  replaces IRSA. Dolt's cloud remotes are `aws://`-shaped; for logical
   backups on GCP, either run against an S3-compatible endpoint or use
   a file remote + object-storage sync sidecar; alternatively rely on
   PD snapshot schedules and `bd dolt push` git-channel redundancy.

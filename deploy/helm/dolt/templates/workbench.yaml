@@ -1,5 +1,5 @@
 {{- if .Values.workbench.enabled }}
-{{- /* dolt-workbench: browser SQL workbench + diff/branch UI. ClusterIP only —
+{{- /* dolt-workbench: browser SQL workbench + diff/branch UI. ClusterIP only;
        publish to users exclusively through your authenticating app proxy
        (Teleport, Pomerium, oauth2-proxy, ...), never on the LoadBalancer.
        The workbench is two processes (Next.js UI :3000 + GraphQL API :9002 that

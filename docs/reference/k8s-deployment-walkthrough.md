@@ -1,7 +1,7 @@
 # Reference: the Kubernetes deployment, as actually wired
 
 > How the origin platform deploys the [dolt chart](../../deploy/helm/dolt/)
-> with IaC around it — anonymized. The chart is in this repo; this doc is
+> with IaC around it (anonymized). The chart is in this repo; this doc is
 > the *wiring*: what your Terraform/Pulumi/scripts must supply around a
 > `helm install` to reproduce the verified production shape. Names below
 > use `dolt-<project>` / `example.com`; substitute your own.
@@ -11,10 +11,10 @@
 The origin runs **two** IaC components per project, and the split is
 load-bearing:
 
-1. **Instance** — namespace, root secret, the Helm release
+1. **Instance**: namespace, root secret, the Helm release
    (StatefulSet/LB/certs). Changes rarely; touching it risks the LB and
    volumes.
-2. **Resources** — SQL accounts, grants, database inventory. Changes
+2. **Resources**: SQL accounts, grants, database inventory. Changes
    often (enrollments, new agents); applies must never be able to touch
    the StatefulSet.
 
@@ -27,7 +27,7 @@ Per project, around `helm install dolt-<project> deploy/helm/dolt`:
 
 - **Namespace** `dolt-<project>` (one per instance), labeled for
   inventory queries.
-- **Root credential**: generate a 32-char password; write it twice —
+- **Root credential**: generate a 32-char password; write it twice:
   a SecureString in the credential store (operator break-glass at
   `/dolt/<project>/root_password`) and a k8s Secret
   (`dolt-<project>-root`, key `root-password`) that the chart's
@@ -45,20 +45,20 @@ Per project, around `helm install dolt-<project> deploy/helm/dolt`:
   internet-facing, `external-dns.alpha.kubernetes.io/hostname` set to
   the automation-owned zone name. The public vanity name is a CNAME on
   top, managed wherever that zone lives (with the `_acme-challenge`
-  CNAME beside it — see the [design record](design/dolt-service.md)).
+  CNAME beside it; see the [design record](design/dolt-service.md)).
 - **Backup IAM** (when enabled): the policy grants object read/write on
   `<bucket>/dolt-<project>/*`, list on the bucket, and item-level
   access on the DynamoDB manifest table; it binds to the **chart's
   ServiceAccount** via workload identity. This is the subtle part:
   `dolt_backup()` executes *inside* the dolt sql-server process, so the
-  StatefulSet pods — not the CronJob — need the credentials; they share
+  StatefulSet pods (not the CronJob) need the credentials; they share
   the SA. Backup remote URL: `aws://[<table>:<bucket>]/dolt-<project>`
   (the chart appends `/<db>`).
 
 ## Resources wiring
 
 Connects as `root` to the instance's **public TLS endpoint** (the same
-path clients use — verifying the cert chain end-to-end on every apply),
+path clients use, verifying the cert chain end-to-end on every apply),
 and manages:
 
 - **Accounts**: `<project>_admin`, `<project>_rw`, `<project>_ro`
@@ -69,25 +69,25 @@ and manages:
   to read user state), account create/rotate runs as an **idempotent
   hook Job** (`CREATE USER IF NOT EXISTS` + `ALTER USER`) rather than a
   provider resource.
-- **Grants** (declarative — Dolt's `SHOW GRANTS` is MySQL-compatible,
+- **Grants** (declarative; Dolt's `SHOW GRANTS` is MySQL-compatible,
   so drift is detected):
-  - `rw`: the app-owner object set bd needs — SELECT/INSERT/UPDATE/
+  - `rw`: the app-owner object set bd needs (SELECT/INSERT/UPDATE/
     DELETE/CREATE/DROP/ALTER/INDEX/REFERENCES/EXECUTE/CREATE VIEW/
     SHOW VIEW/TRIGGER/CREATE+ALTER ROUTINE/CREATE TEMPORARY TABLES/
-    LOCK TABLES, **plus `CLONE_ADMIN`**.
+    LOCK TABLES), **plus `CLONE_ADMIN`**.
   - `ro`: SELECT, EXECUTE, `CLONE_ADMIN`.
   - `admin`: `*.*` with GRANT OPTION.
   - `CLONE_ADMIN` is what authorizes **remotesapi reads** (dolt
-    clone/fetch/pull — i.e. bd federation and disconnected working
+    clone/fetch/pull, i.e. bd federation and disconnected working
     copies). remotesapi *push* still requires superuser, i.e. admin.
-- **Databases — hybrid model**: declared databases are created if
+- **Databases (hybrid model)**: declared databases are created if
   absent (`utf8mb4`/`utf8mb4_0900_bin`) and delete-protected
   (`prevent_destroy`); grants stay instance-wide (`*.*`) so bd's
   unconditional `CREATE DATABASE IF NOT EXISTS` keeps working. A
   scoped-grants toggle exists for non-bd instances; it is incompatible
   with current bd (see the design record).
 - **Enrollment output**: a ready-made credential-store read policy
-  (scoped to `/dolt/<project>/users/*`) — attaching it to a person's
+  (scoped to `/dolt/<project>/users/*`); attaching it to a person's
   role IS Phase-0 enrollment ([enrollment.md](../enrollment.md)).
 
 ## Failover interplay

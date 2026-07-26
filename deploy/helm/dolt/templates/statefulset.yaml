@@ -128,10 +128,10 @@ spec:
           secret:
             secretName: {{ include "dolt.tlsSecretName" . }}
         {{- end }}
-  {{- /* volumeClaimTemplates are IMMUTABLE — never template mutable values in
+  {{- /* volumeClaimTemplates are IMMUTABLE: never template mutable values in
          here (a backup-plan ternary label once made backup toggles
          un-appliable; PVC labels are not synced to volume tags by CSI drivers
-         anyway — snapshot enrollment belongs to your platform's backup
+         anyway; snapshot enrollment belongs to your platform's backup
          tooling). Changing this block requires
          `kubectl delete sts <name> --cascade=orphan` + re-apply. */}}
   volumeClaimTemplates:
