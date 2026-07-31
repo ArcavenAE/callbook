@@ -5,7 +5,7 @@
 > for a collaborator who was present but does not persist. Follows the
 > kos process: Orient → Ideate → Question → Probe → Harvest → Promote.
 
-Last updated: 2026-07-30 (proxied mode struck from the plan: G4 opened, kit/docs/charter swept; F6 gains filed issue numbers #5177/#5178 + seeding cluster (h))
+Last updated: 2026-07-31 (contribution audit: every filed assertion re-tested, corrections posted on #5080/#5084/#5177/#5179/#5086; F6 (f)/(g)/(h) updated, drafts gate passed; orc finding-092)
 
 ---
 
@@ -210,15 +210,20 @@ drops the TLS setting in every release up to 1.1.2
 cut from a stale base, so it has not shipped); (e) direct server mode
 has no custom-CA or client-certificate surface (system-roots
 verification only; both exist in the proxied external stack); (f) TLS
-and auth for remote servers are undiscoverable from the CLI
-(gastownhall/beads#5011, docs PR #5144 open); (g) an environment
-variable silently overrides an explicit `--server-port` flag at init
-(resolution-order inversion): filed as gastownhall/beads#5177 with
-fix PR #5178 (flag promotion + settable presence-aware tls key);
-(h) a proxied-server workspace cannot be bulk-seeded
+and auth for remote servers were undiscoverable from the CLI: fixed on
+main 2026-07-31 (#5144 merged, closing #5011) but shipped in no
+release, and the merged help states metadata.json carries no password
+or tls key on purpose, a stance #5178's `bd dolt set tls` half must
+re-argue or drop; (g) an environment variable silently overrides an
+explicit `--server-port` flag at init (resolution-order inversion):
+filed as gastownhall/beads#5177 with fix PR #5178 (flag promotion +
+settable presence-aware tls key; now conflicts with merged #5144, see
+(f)); (h) a proxied-server workspace cannot be bulk-seeded
 (import/export/federation refused, `bd migrate issues` panics):
-gastownhall/beads#5180 + #5179; our import-leg PR #5181 was
-withdrawn 2026-07-31 as not fully formed and needing rework.
+gastownhall/beads#5180 + #5179; import-leg PR #5181 withdrawn
+2026-07-31 for rework (comment timestamps/ids lost on first import,
+duplicate comment rows on re-import, export leg missing; rework list
+in orc finding-092).
 Not on callbook's path (G4) but tracked because it gates anyone
 arriving via that mode. (i) `bd import` miscounts on the **direct** path: existing rows are
 reported as `created` (`importIssuesCore` sets
@@ -228,14 +233,17 @@ same input. This one IS on callbook's path: direct mode is the primary
 enrollment path and `bd import` is the seeding tool, so a seed that
 silently reports every row as new is a bad signal at exactly the moment
 an operator is checking whether a seed took. Reproduced independently
-on a second machine; queued for upstream filing. Pairs with
+on a second machine AND by the 2026-07-31 audit (orc finding-092);
+upstream filing queued as bd aae-orc-6c53. Pairs with
 aae-orc finding-081 (`import --dry-run` never consults the db): the real
 run and the dry run compute their counts independently, which is the
 underlying weakness.
 
 Drafted filings for (e)/(f) live in the
-orchestrator at `docs/briefs/beads-tls-upstream-filings-drafts.md`,
-gated on reviewing engagement with our existing upstream filings.
+orchestrator at `docs/briefs/beads-tls-upstream-filings-drafts.md`;
+their gate (reviewing engagement with our existing filings) was passed
+by the 2026-07-31 contribution audit (orc finding-092), which also
+records the line-level revisions each draft needs before filing.
 
 Contribution vehicle: **ArcavenAE/beads** (fork of gastownhall/beads,
 tier-2 shape: origin=fork, upstream=gastownhall). Intent is
@@ -289,6 +297,7 @@ for direct mode instead).
 | Session | Date | Outcomes |
 |---------|------|----------|
 | Scaffold | 2026-07-25 | Repo created. README, vision, enrollment, local-instance, dolt-service design record; Helm chart extracted + scrubbed (namePrefix parameterized, org label → callbook.arcaven.com, Datadog optional, storage-class neutral); kit v0 (install/doctor/enroll + launchd/systemd); compose recipe; AWS/GCP/Azure cloud notes. B1–B3 set, F1–F6 opened, G1–G3 ruled. Origin: generic extraction of a deployed per-project Dolt platform service + its beads-enrollment proposal. bd: aae-orc-z2t8. |
+| Contribution audit | 2026-07-31 | Every assertion in our 8 beads issues + 5 PRs re-tested empirically (14-agent verify + adversarial-refute workflow at orc; 113 assertions; orc finding-092). Substance held everywhere; flaws were evidence hygiene (transcript folds on #5080/#5084 carried the script pasted twice; dirty-tree counts on #5179/#5181) and overgeneralization sentences (#5177 host/user, #5085 body, #5086 comment mechanics). Corrections posted: real container-captured transcripts into #5080/#5084 bodies + comments, #5177 sentence + mechanism correction, #5179 count fix, #5086 staleness note. New upstream facts: #5144 merged/#5011 closed (F6 (f) updated), post-#4909 real-import miscount discovered, `bd init --external` auto-start gap, `federation sync` positional arg ignored. Drafts gate passed; bd queue updated under aae-orc-9h3f. |
 | Direct-mode TLS verification | 2026-07-30 | finding-001: the "bd server mode cannot speak TLS" premise behind the proxied-mode default was disproven (dummy-password discrimination against a deployed TLS-required instance; runtime TLS works on released 1.1.0/1.1.2, only `bd init` drops TLS, upstream #3895/#3679 unreleased). Design doc client-compat rewritten, B2 scope note (CREATE defect is proxied-only, #5079), F2 reframed, F6 gains (d)-(g), enroll.sh writes direct-mode vars first, doctor.sh warning retargeted. Upstream filing drafts staged in the orchestrator, gated on engagement review. |
 | Public-readiness pass | 2026-07-26 | Brand sweep: every em dash removed repo-wide (155 lines touched; gates now enforce absence via byte-escape grep). Public furniture: CONTRIBUTING.md, SECURITY.md, CI (harden-runner + checkout SHA-pinned; shellcheck, helm lint, two template renders, style/leak gate). just check mirrors CI and caught its own gaps (default render needed issuerRef; org-token grep self-matched; both fixed). Repo metadata: description de-dashed, 9 topics set (ai-agents, issue-tracking, task-management, dolt, kubernetes, helm, local-first, self-hosted, beads). Full-history scrub verified (only authorship matches). Still private; flip is a one-command decision. |
 | Fresh-machine deltas + direct-path import defect | 2026-07-30 | Independent second-machine attempt against a kit-shaped server, arrived at from the orchestrator side (aae-orc finding-089, with the mode arc in aae-orc finding-088). Confirms finding-001 + G4 from a separate direction: the same false TLS premise had also been written into the orchestrator's Phase-1 plan, and building the proxied path is what disproved it there too. Additive here: **F2** gains two kit items (`doctor` must assert the *effective* port, since bd path-hashes one when unset and its auto-start then manufactures an empty server that fails as an *auth* error; and a host-specific connection pointer must not be a shared/committed artifact, which is what carried the bad port to the second machine). **F6** gains (i): `bd import` miscounts on the **direct** path, reporting existing rows as `created` and disagreeing with `--dry-run` on the same input. Unlike (h) this one is on-path, since direct mode is primary and import is the seeding tool. **F6(h)** corrected: our PR #5181 was withdrawn as needing rework, not in flight. |
