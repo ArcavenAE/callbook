@@ -89,17 +89,34 @@ grants instance-wide so bd's golden path (`CREATE DATABASE IF NOT
 EXISTS` at `bd init`) keeps working. Strict IaC-only is empirically
 broken with current bd: its proxied-server stack issues the CREATE
 unconditionally on every open, and Dolt denies the statement without
-global CREATE *even when the database exists*. Keep a strict-mode toggle
-for non-bd instances or a future upstream fix. Note Dolt keeps dropped
+global CREATE *even when the database exists*. The defect is scoped to
+the proxied stack: bd's direct-server stack probes before creating, so
+deployments whose clients are all direct-mode can consider the strict
+model today (upstream ask: gastownhall/beads#5079). Keep a strict-mode
+toggle for non-bd instances or a future upstream fix. Note Dolt keeps dropped
 databases recoverable via `dolt_undrop()` until purged, and CREATE/DROP
 both replicate to standbys.
 
 ### Client compatibility
 
-- bd ≤ 1.1.0 server mode cannot negotiate TLS and is rejected by the
-  listener. Its **proxied-server** mode (post-1.1.0) connects with
-  `--proxied-server-external-tls`. Pin a known-good bd until a release
-  carries it.
+- bd's direct ("server") mode negotiates TLS on every release since
+  v0.53.0 (`dolt_server_tls` config / `BEADS_DOLT_SERVER_TLS` env;
+  verification against system roots, so publicly trusted instance
+  certificates work; no custom-CA surface yet). One release gap:
+  `bd init --server --external` drops the TLS setting and is rejected
+  as insecure (verified on 1.1.0 and 1.1.2 against a deployed
+  TLS-required instance, 2026-07-30; upstream gastownhall/beads#3895,
+  fixed on main by #3679 but in no release yet). Enrollment therefore
+  writes the workspace connection config directly; runtime commands
+  work on stock released bd. An earlier version of this section claimed
+  bd server mode could not speak TLS at all; that was the init gap
+  observed and over-generalized.
+- bd's **proxied-server** mode (post-1.1.0 HEAD builds) also connects,
+  with `--proxied-server-external-tls`, and is today the only bd client
+  that can present a client certificate (mutual TLS). All of its flags
+  are marked EXPERIMENTAL upstream, and its open stack issues the
+  unconditional CREATE described above (gastownhall/beads#5079). Prefer
+  direct mode unless client certificates are required.
 - bd day-to-day traffic is the SQL wire; **federation sync uses the dolt
   remote protocol (remotesapi)**, which is why remotesapi is exposed as
   a second TLS listener on the same LB.

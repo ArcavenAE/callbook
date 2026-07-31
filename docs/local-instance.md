@@ -50,7 +50,7 @@ kit/install.sh --systemd    # Linux user unit
 kit/doctor.sh
 ```
 
-Checks: bd version (proxied-TLS-capable), dolt version, server
+Checks: bd version (init-TLS release gap), dolt version, server
 reachability, TLS verification when enrolled, enrollment state,
 `node_id` set, actor configured. Non-zero exit on any hard failure.
 

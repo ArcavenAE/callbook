@@ -18,9 +18,12 @@ echo "callbook doctor"
 if command -v bd >/dev/null 2>&1; then
   BD_VER="$(bd version 2>/dev/null | head -1 || true)"
   ok "bd present ($BD_VER)"
-  # proxied-server TLS support landed after 1.1.0; warn on anything <= 1.1.0
-  if printf '%s' "$BD_VER" | grep -qE '\b(0\.[0-9.]+|1\.(0\.[0-9]+|1\.0))\b'; then
-    warn "bd <= 1.1.0 cannot negotiate TLS to a shared tracker (local-only is fine)"
+  # Direct-mode runtime TLS works on any release >= 0.53.0, but 'bd init'
+  # drops the TLS setting in every release up to 1.1.2 (upstream
+  # gastownhall/beads#3895; fixed on main 2026-07-04, not yet released).
+  # Proxied-server mode additionally needs a post-1.1.0 HEAD build.
+  if printf '%s' "$BD_VER" | grep -qE '\b(0\.[0-9.]+|1\.(0\.[0-9]+|1\.[0-2]))\b'; then
+    warn "bd <= 1.1.2: 'bd init' cannot attach to a TLS tracker (runtime commands are fine); write the workspace config directly per docs/enrollment.md"
   fi
 else
   bad "bd not found (run kit/install.sh)"

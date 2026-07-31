@@ -39,7 +39,15 @@ access to a path*, never the value out-of-band.
   unconditionally on every open, and Dolt denies that statement without
   global CREATE even when the database exists, which is why grants stay
   instance-wide in the hybrid database model (see the design doc) until
-  the upstream probe-before-create fix lands.
+  the upstream probe-before-create fix lands
+  (gastownhall/beads#5079; the direct-server stack already probes
+  first, so direct-mode-only deployments avoid this gap).
+- bd's `bd init --server --external` drops the TLS setting in every
+  release up to 1.1.2 and is rejected by a TLS-required listener
+  (gastownhall/beads#3895; fixed on main by #3679, unreleased).
+  Runtime commands honor `BEADS_DOLT_SERVER_TLS` on any release since
+  v0.53.0, so enrollment writes the workspace config directly instead
+  of running init against the tracker.
 - Federation sync should forward peer credentials to remotesapi rather
   than always presenting the local root identity. Prerequisite for
   cross-org federation.
@@ -71,8 +79,10 @@ enrollment step (`kit/enroll.sh`) does, in order:
 
 1. Authenticate to your credential store (pluggable; see below).
 2. Fetch the per-account credential.
-3. Write the per-machine connection config (proxied-server bootstrap or
-   federation peer, chosen by flag). Never into git-tracked files.
+3. Write the per-machine connection config (direct server mode
+   variables as the primary path, proxied-server variables alongside
+   for the client-certificate case, or a federation peer, chosen by
+   flag). Never into git-tracked files.
 4. Mint `node_id` if absent.
 5. Register the actor name from the pool.
 6. Fail closed at every step.
@@ -127,8 +137,10 @@ authentication requirement. Not before.
 - OpenBao vs Vault for Phase 2 (licensing/ops preference).
 - Whether ephemeral agents on developer workstations enroll via the
   person's identity (Phase 0 semantics) or wait for Phase 2 leases.
-- bd version channel: proxied-server TLS requires a post-1.1.0 bd; the
-  kit must pin or ship a known-good build until a release carries it.
+- bd version channel: any released bd covers direct-mode runtime TLS;
+  the init-path TLS fix and proxied-server mode both still require a
+  post-1.1.2 build. Pin or ship a known-good build only when those
+  paths are needed.
 - Whether mTLS (cert-manager-minted client certs, Dolt
   `REQUIRE SUBJECT`, bd's client-cert flags) is worth a spike for
   long-lived agents before the gateway exists. One empirical test

@@ -5,7 +5,7 @@
 > for a collaborator who was present but does not persist. Follows the
 > kos process: Orient → Ideate → Question → Probe → Harvest → Promote.
 
-Last updated: 2026-07-25 (scaffold session + founder scope framing: F1 refined, F7-F8 opened)
+Last updated: 2026-07-30 (finding-001: direct-mode TLS verified; proxied-mode premise corrected across design doc, kit, B2, F2, F6)
 
 ---
 
@@ -75,7 +75,11 @@ delete-protected); leave grants instance-wide so bd's golden path
 IaC-only is empirically broken with current bd: its proxied-server
 stack issues the CREATE unconditionally on every open and Dolt denies
 it without global CREATE even when the database exists (verified on
-2.2.2).
+2.2.2). Scope note (2026-07-30): the defect is proxied-stack-only;
+bd's direct-server stack probes before creating (upstream ask
+gastownhall/beads#5079), so direct-mode-only deployments can consider
+the strict model. Hybrid stays the default while proxied clients
+exist.
 
 ### B3: The actor model (names + pools + tiers)
 
@@ -140,10 +144,12 @@ bring-up, or the first fumbled manual failover.
 
 `kit/*.sh` are extracted-and-generalized first versions, not yet
 soak-tested on a fresh machine. Needs: fresh-macOS and fresh-Linux
-runs, bd version pinning (proxied-TLS gate), a `--uninstall`, and the
-smoke test exercising a proxied-server enrollment against a real
-tracker. The enroll flow needs the admin-first-attach dance documented
-inline once the upstream gap moves.
+runs, bd version awareness (the init-TLS release gap, finding-001;
+the old "proxied-TLS gate" framing is retired), a `--uninstall`, and
+the smoke test exercising a direct-mode enrollment against a real
+tracker (proxied variant secondary). The enroll flow needs the
+admin-first-attach dance documented inline once the upstream gap
+moves.
 
 ### F3: Per-cloud verification
 
@@ -174,9 +180,23 @@ Until then: stock bd, pinned versions, issues filed.
 (a) federation sync always presents root to remotesapi instead of peer
 credentials; (b) proxied-server stack should probe before
 `CREATE DATABASE` (the direct-server stack already does), which is also
-what unlocks restricted-tier enrollment; (c) rw-tier first-attach of an
-existing database needs `dolt_remote()` coverage. File upstream, link
-issue numbers here.
+what unlocks restricted-tier enrollment: filed as
+gastownhall/beads#5079; (c) rw-tier first-attach of an existing
+database needs `dolt_remote()` coverage. File upstream, link issue
+numbers here.
+
+Added 2026-07-30 (finding-001): (d) `bd init --server --external`
+drops the TLS setting in every release up to 1.1.2
+(gastownhall/beads#3895; fix #3679 merged 2026-07-04 but releases are
+cut from a stale base, so it has not shipped); (e) direct server mode
+has no custom-CA or client-certificate surface (system-roots
+verification only; both exist in the proxied external stack); (f) TLS
+and auth for remote servers are undiscoverable from the CLI
+(gastownhall/beads#5011, docs PR #5144 open); (g) an environment
+variable silently overrides an explicit `--server-port` flag at init
+(resolution-order inversion). Drafted filings for (e)/(f)/(g) live in
+the orchestrator at `docs/briefs/beads-tls-upstream-filings-drafts.md`,
+gated on reviewing engagement with our existing upstream filings.
 
 Contribution vehicle: **ArcavenAE/beads** (fork of gastownhall/beads,
 tier-2 shape: origin=fork, upstream=gastownhall). Intent is
@@ -214,4 +234,5 @@ only shape that works.
 | Session | Date | Outcomes |
 |---------|------|----------|
 | Scaffold | 2026-07-25 | Repo created. README, vision, enrollment, local-instance, dolt-service design record; Helm chart extracted + scrubbed (namePrefix parameterized, org label → callbook.arcaven.com, Datadog optional, storage-class neutral); kit v0 (install/doctor/enroll + launchd/systemd); compose recipe; AWS/GCP/Azure cloud notes. B1–B3 set, F1–F6 opened, G1–G3 ruled. Origin: generic extraction of a deployed per-project Dolt platform service + its beads-enrollment proposal. bd: aae-orc-z2t8. |
+| Direct-mode TLS verification | 2026-07-30 | finding-001: the "bd server mode cannot speak TLS" premise behind the proxied-mode default was disproven (dummy-password discrimination against a deployed TLS-required instance; runtime TLS works on released 1.1.0/1.1.2, only `bd init` drops TLS, upstream #3895/#3679 unreleased). Design doc client-compat rewritten, B2 scope note (CREATE defect is proxied-only, #5079), F2 reframed, F6 gains (d)-(g), enroll.sh writes direct-mode vars first, doctor.sh warning retargeted. Upstream filing drafts staged in the orchestrator, gated on engagement review. |
 | Public-readiness pass | 2026-07-26 | Brand sweep: every em dash removed repo-wide (155 lines touched; gates now enforce absence via byte-escape grep). Public furniture: CONTRIBUTING.md, SECURITY.md, CI (harden-runner + checkout SHA-pinned; shellcheck, helm lint, two template renders, style/leak gate). just check mirrors CI and caught its own gaps (default render needed issuerRef; org-token grep self-matched; both fixed). Repo metadata: description de-dashed, 9 topics set (ai-agents, issue-tracking, task-management, dolt, kubernetes, helm, local-first, self-hosted, beads). Full-history scrub verified (only authorship matches). Still private; flip is a one-command decision. |
