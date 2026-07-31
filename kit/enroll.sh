@@ -62,7 +62,7 @@ cat > "$ENV_FILE" <<EOF
 # callbook enrollment: $PROJECT ($TIER tier). Source before bd commands
 # in this project, or wire into direnv. NOT for git-tracked files.
 export CALLBOOK_TRACKER_HOST=$HOST
-# Direct server mode (primary path; works on any released bd >= 0.53.0).
+# Direct server mode (works on any released bd >= 0.53.0).
 # Caveat: 'bd init' drops the TLS setting in releases up to 1.1.2
 # (upstream gastownhall/beads#3895); write the workspace config directly
 # per docs/enrollment.md. Runtime commands honor these variables.
@@ -72,13 +72,6 @@ export BEADS_DOLT_SERVER_PORT=3306
 export BEADS_DOLT_SERVER_USER=$ACCOUNT
 export BEADS_DOLT_SERVER_TLS=1
 export BEADS_DOLT_PASSWORD=$PASSWORD
-# Proxied-server mode (EXPERIMENTAL upstream; needs a post-1.1.0 HEAD
-# build; today's only client-certificate path). Same endpoint/account.
-export BEADS_PROXIED_SERVER_EXTERNAL_HOST=$HOST
-export BEADS_PROXIED_SERVER_EXTERNAL_PORT=3306
-export BEADS_PROXIED_SERVER_EXTERNAL_USER=$ACCOUNT
-export BEADS_PROXIED_SERVER_EXTERNAL_PASSWORD=$PASSWORD
-export BEADS_PROXIED_SERVER_EXTERNAL_TLS=1
 EOF
 umask 022
 say "wrote $ENV_FILE (mode 600)"

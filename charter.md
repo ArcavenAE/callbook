@@ -5,7 +5,7 @@
 > for a collaborator who was present but does not persist. Follows the
 > kos process: Orient → Ideate → Question → Probe → Harvest → Promote.
 
-Last updated: 2026-07-30 (finding-001: direct-mode TLS verified; proxied-mode premise corrected across design doc, kit, B2, F2, F6)
+Last updated: 2026-07-30 (proxied mode struck from the plan: G4 opened, kit/docs/charter swept; F6 gains filed issue numbers #5177/#5178 + seeding cluster (h))
 
 ---
 
@@ -77,9 +77,10 @@ stack issues the CREATE unconditionally on every open and Dolt denies
 it without global CREATE even when the database exists (verified on
 2.2.2). Scope note (2026-07-30): the defect is proxied-stack-only;
 bd's direct-server stack probes before creating (upstream ask
-gastownhall/beads#5079), so direct-mode-only deployments can consider
-the strict model. Hybrid stays the default while proxied clients
-exist.
+gastownhall/beads#5079). With proxied mode struck from the plan (G4),
+callbook clients are direct-mode only and moving to the strict model
+is an open follow-up; hybrid remains the shipped default for stock-bd
+compatibility until that lands.
 
 ### B3: The actor model (names + pools + tiers)
 
@@ -147,9 +148,8 @@ soak-tested on a fresh machine. Needs: fresh-macOS and fresh-Linux
 runs, bd version awareness (the init-TLS release gap, finding-001;
 the old "proxied-TLS gate" framing is retired), a `--uninstall`, and
 the smoke test exercising a direct-mode enrollment against a real
-tracker (proxied variant secondary). The enroll flow needs the
-admin-first-attach dance documented inline once the upstream gap
-moves.
+tracker. The enroll flow needs the admin-first-attach dance
+documented inline once the upstream gap moves.
 
 ### F3: Per-cloud verification
 
@@ -194,8 +194,14 @@ verification only; both exist in the proxied external stack); (f) TLS
 and auth for remote servers are undiscoverable from the CLI
 (gastownhall/beads#5011, docs PR #5144 open); (g) an environment
 variable silently overrides an explicit `--server-port` flag at init
-(resolution-order inversion). Drafted filings for (e)/(f)/(g) live in
-the orchestrator at `docs/briefs/beads-tls-upstream-filings-drafts.md`,
+(resolution-order inversion): filed as gastownhall/beads#5177 with
+fix PR #5178 (flag promotion + settable presence-aware tls key);
+(h) a proxied-server workspace cannot be bulk-seeded
+(import/export/federation refused, `bd migrate issues` panics):
+gastownhall/beads#5180 + #5179, import-leg fix in flight (#5181).
+Not on callbook's path (G4) but tracked because it gates anyone
+arriving via that mode. Drafted filings for (e)/(f) live in the
+orchestrator at `docs/briefs/beads-tls-upstream-filings-drafts.md`,
 gated on reviewing engagement with our existing upstream filings.
 
 Contribution vehicle: **ArcavenAE/beads** (fork of gastownhall/beads,
@@ -226,6 +232,22 @@ per-project records or a dedicated subzone.
 MySQL TLS is negotiated in-protocol (STARTTLS-style); HTTP LBs and SNI
 routing don't apply. TCP passthrough + dolt-served certificates is the
 only shape that works.
+
+### G4: bd proxied-server mode as the client path (struck 2026-07-30)
+
+The recipe originally standardized on bd's proxied-server mode on the
+belief that it was the only TLS-capable client. finding-001 disproved
+that premise: direct server mode has negotiated TLS since v0.53.0 and
+works on released builds. What proxied mode actually is: an
+experimental per-workspace proxy for local multi-agent workspaces,
+whose external-server sliver we were using for TLS alone. Ruled out
+because every flag is EXPERIMENTAL upstream, it exists only in
+post-1.1.0 HEAD builds, its open stack requires global CREATE
+(gastownhall/beads#5079), and a workspace opened that way cannot be
+bulk-seeded (#5180, #5179). Reopen only if upstream stabilizes the
+mode by documented decision AND it offers something direct mode
+cannot (today that is only client certificates, tracked as F6 (e)
+for direct mode instead).
 
 ---
 

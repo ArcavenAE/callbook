@@ -31,17 +31,8 @@ access to a path*, never the value out-of-band.
 
 ### Known upstream gaps (tracked)
 
-- bd's proxied-server bootstrap of an *existing* database calls
-  `dolt_remote()`, which the rw grant set does not cover; first attach
-  from a new machine currently needs the admin account. Upstream issue;
-  the kit's enroll flow documents the admin-assisted first-attach.
-- bd's proxied-server stack issues `CREATE DATABASE IF NOT EXISTS`
-  unconditionally on every open, and Dolt denies that statement without
-  global CREATE even when the database exists, which is why grants stay
-  instance-wide in the hybrid database model (see the design doc) until
-  the upstream probe-before-create fix lands
-  (gastownhall/beads#5079; the direct-server stack already probes
-  first, so direct-mode-only deployments avoid this gap).
+Gaps on the path callbook uses (direct server mode):
+
 - bd's `bd init --server --external` drops the TLS setting in every
   release up to 1.1.2 and is rejected by a TLS-required listener
   (gastownhall/beads#3895; fixed on main by #3679, unreleased).
@@ -51,6 +42,23 @@ access to a path*, never the value out-of-band.
 - Federation sync should forward peer credentials to remotesapi rather
   than always presenting the local root identity. Prerequisite for
   cross-org federation.
+
+Gaps in bd's experimental proxied-server mode, tracked upstream but
+not on callbook's path (callbook does not use that mode):
+
+- Its bootstrap of an *existing* database calls `dolt_remote()`, which
+  the rw grant set does not cover; first attach from a new machine
+  needs the admin account.
+- Its open stack issues `CREATE DATABASE IF NOT EXISTS` unconditionally
+  on every open, and Dolt denies that statement without global CREATE
+  even when the database exists (gastownhall/beads#5079; the
+  direct-server stack already probes first). This is part of why the
+  hybrid database model keeps grants instance-wide; a direct-mode-only
+  deployment can consider the strict model.
+- A workspace opened that way cannot be bulk-seeded: import, export,
+  and federation are all refused, and `bd migrate issues` panics
+  (gastownhall/beads#5180, #5179; fix for the import leg in flight,
+  #5181).
 
 ## Phase 0: humans and troupes (convention)
 
@@ -80,9 +88,8 @@ enrollment step (`kit/enroll.sh`) does, in order:
 1. Authenticate to your credential store (pluggable; see below).
 2. Fetch the per-account credential.
 3. Write the per-machine connection config (direct server mode
-   variables as the primary path, proxied-server variables alongside
-   for the client-certificate case, or a federation peer, chosen by
-   flag). Never into git-tracked files.
+   variables, or a federation peer, chosen by flag). Never into
+   git-tracked files.
 4. Mint `node_id` if absent.
 5. Register the actor name from the pool.
 6. Fail closed at every step.
@@ -138,9 +145,9 @@ authentication requirement. Not before.
 - Whether ephemeral agents on developer workstations enroll via the
   person's identity (Phase 0 semantics) or wait for Phase 2 leases.
 - bd version channel: any released bd covers direct-mode runtime TLS;
-  the init-path TLS fix and proxied-server mode both still require a
-  post-1.1.2 build. Pin or ship a known-good build only when those
-  paths are needed.
+  only the init-path TLS fix still requires a post-1.1.2 build. Pin or
+  ship a known-good build only if init-against-tracker is needed
+  before the fix ships.
 - Whether mTLS (cert-manager-minted client certs, Dolt
   `REQUIRE SUBJECT`, bd's client-cert flags) is worth a spike for
   long-lived agents before the gateway exists. One empirical test

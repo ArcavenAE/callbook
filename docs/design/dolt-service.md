@@ -111,12 +111,16 @@ both replicate to standbys.
   work on stock released bd. An earlier version of this section claimed
   bd server mode could not speak TLS at all; that was the init gap
   observed and over-generalized.
-- bd's **proxied-server** mode (post-1.1.0 HEAD builds) also connects,
-  with `--proxied-server-external-tls`, and is today the only bd client
-  that can present a client certificate (mutual TLS). All of its flags
-  are marked EXPERIMENTAL upstream, and its open stack issues the
-  unconditional CREATE described above (gastownhall/beads#5079). Prefer
-  direct mode unless client certificates are required.
+- bd also has a **proxied-server** mode. callbook does not use it: all
+  of its flags are marked EXPERIMENTAL upstream, it exists only in
+  post-1.1.0 HEAD builds, its open stack issues the unconditional
+  CREATE described above (gastownhall/beads#5079), and a workspace
+  opened that way currently cannot be bulk-seeded at all (import,
+  export, and federation are refused; gastownhall/beads#5180). It is
+  mentioned here only so its variables are not mistaken for the
+  supported path. Client certificates (mutual TLS) are not yet
+  reachable from bd's direct mode; that gap is tracked upstream
+  (charter F6) rather than worked around via the experimental stack.
 - bd day-to-day traffic is the SQL wire; **federation sync uses the dolt
   remote protocol (remotesapi)**, which is why remotesapi is exposed as
   a second TLS listener on the same LB.
