@@ -5,7 +5,7 @@
 > for a collaborator who was present but does not persist. Follows the
 > kos process: Orient → Ideate → Question → Probe → Harvest → Promote.
 
-Last updated: 2026-07-31 (contribution audit: every filed assertion re-tested, corrections posted on #5080/#5084/#5177/#5179/#5086; F6 (f)/(g)/(h) updated, drafts gate passed; orc finding-092)
+Last updated: 2026-07-31 (audit + follow-through: corrections posted on #5080/#5084/#5177/#5179/#5086; all four PR branches reworked and MERGEABLE; new filings #5199 (import miscount), #5200 (custom CA), #5201 (mTLS); F6 (e)-(i) updated; orc finding-092)
 
 ---
 
@@ -209,7 +209,9 @@ drops the TLS setting in every release up to 1.1.2
 (gastownhall/beads#3895; fix #3679 merged 2026-07-04 but releases are
 cut from a stale base, so it has not shipped); (e) direct server mode
 has no custom-CA or client-certificate surface (system-roots
-verification only; both exist in the proxied external stack); (f) TLS
+verification only; both exist in the proxied external stack): filed
+2026-07-31 as gastownhall/beads#5200 (custom CA) + #5201 (client
+certificates), each carrying a PR offer; (f) TLS
 and auth for remote servers were undiscoverable from the CLI: fixed on
 main 2026-07-31 (#5144 merged, closing #5011) but shipped in no
 release, and the merged help states metadata.json carries no password
@@ -234,16 +236,17 @@ enrollment path and `bd import` is the seeding tool, so a seed that
 silently reports every row as new is a bad signal at exactly the moment
 an operator is checking whether a seed took. Reproduced independently
 on a second machine AND by the 2026-07-31 audit (orc finding-092);
-upstream filing queued as bd aae-orc-6c53. Pairs with
+filed 2026-07-31 as gastownhall/beads#5199. Pairs with
 aae-orc finding-081 (`import --dry-run` never consults the db): the real
 run and the dry run compute their counts independently, which is the
 underlying weakness.
 
-Drafted filings for (e)/(f) live in the
-orchestrator at `docs/briefs/beads-tls-upstream-filings-drafts.md`;
-their gate (reviewing engagement with our existing filings) was passed
-by the 2026-07-31 contribution audit (orc finding-092), which also
-records the line-level revisions each draft needs before filing.
+The (e) drafts were FILED 2026-07-31 (#5200, #5201) after the audit
+(orc finding-092) passed their gate and container-clean transcripts
+replaced the leaky macOS captures; the brief at
+`docs/briefs/beads-tls-upstream-filings-drafts.md` records the arc.
+The (f) residual (no CLI flag; deliberate no-tls-key-in-metadata
+stance) is carried on PR #5178.
 
 Contribution vehicle: **ArcavenAE/beads** (fork of gastownhall/beads,
 tier-2 shape: origin=fork, upstream=gastownhall). Intent is
