@@ -5,7 +5,7 @@
 > for a collaborator who was present but does not persist. Follows the
 > kos process: Orient → Ideate → Question → Probe → Harvest → Promote.
 
-Last updated: 2026-07-31 (audit + follow-through: corrections posted on #5080/#5084/#5177/#5179/#5086; all four PR branches reworked and MERGEABLE; new filings #5199 (import miscount), #5200 (custom CA), #5201 (mTLS); F6 (e)-(i) updated; orc finding-092)
+Last updated: 2026-08-01 (growth-path + patterns + sync-conflicts runbook drafted from the measured working-copy probe, orc finding-106; F8 updated)
 
 ---
 
@@ -119,15 +119,18 @@ derived-index traceability decision, upstream #671); teaming across
 forks = shared database or federation. Needs: a docs/attaching.md
 playbook + the vsdd-factory pilot.
 
-### F8: Substrates beyond Kubernetes and the growth path
+### F8: Substrates beyond Kubernetes and the growth path [growth-path drafted 2026-08-01]
 
 Named scope not yet in deploy/: plain-VM/EC2 recipe (systemd +
 dolt sql-server + certbot/ACME TLS), DigitalOcean, Cloudflare
 (genuinely open: no obvious TCP-passthrough for 3306; Tunnel or
-Spectrum territory), and a first-class growth-path doc
-(solo-local → team compose → cloud → federated). That growth-path doc is
-the recipe/template heart of the project, currently only implicit across
-docs.
+Spectrum territory). The growth-path doc, the recipe/template heart
+of the project, now exists as a draft: `docs/growth-path.md`
+(steps 0-4, honesty-labeled), with the topology map in
+`docs/patterns.md` (six patterns incl. the tiered-rigor capstone,
+Mermaid diagrams) and `docs/runbooks/sync-conflicts.md` (the
+measured same-bead conflict resolution). Backing measurements:
+orchestrator finding-106. Substrate recipes remain open.
 
 ### F9: Operational layers (marvel-managed vs standalone vs parts)
 
@@ -299,6 +302,7 @@ for direct mode instead).
 
 | Session | Date | Outcomes |
 |---------|------|----------|
+| Growth path + patterns drafts | 2026-08-01 | docs/growth-path.md (steps 0-4), docs/patterns.md (six topologies incl. tiered-rigor capstone, Mermaid), docs/runbooks/sync-conflicts.md. Grounded in orc finding-106 (working-copy topology measured: auto-push built in, updated_at conflict class, SuperUser-to-push constraint, seeding + bootstrap mechanics). Capstone citations pending research. F8 updated. |
 | Scaffold | 2026-07-25 | Repo created. README, vision, enrollment, local-instance, dolt-service design record; Helm chart extracted + scrubbed (namePrefix parameterized, org label → callbook.arcaven.com, Datadog optional, storage-class neutral); kit v0 (install/doctor/enroll + launchd/systemd); compose recipe; AWS/GCP/Azure cloud notes. B1–B3 set, F1–F6 opened, G1–G3 ruled. Origin: generic extraction of a deployed per-project Dolt platform service + its beads-enrollment proposal. bd: aae-orc-z2t8. |
 | Contribution audit | 2026-07-31 | Every assertion in our 8 beads issues + 5 PRs re-tested empirically (14-agent verify + adversarial-refute workflow at orc; 113 assertions; orc finding-092). Substance held everywhere; flaws were evidence hygiene (transcript folds on #5080/#5084 carried the script pasted twice; dirty-tree counts on #5179/#5181) and overgeneralization sentences (#5177 host/user, #5085 body, #5086 comment mechanics). Corrections posted: real container-captured transcripts into #5080/#5084 bodies + comments, #5177 sentence + mechanism correction, #5179 count fix, #5086 staleness note. New upstream facts: #5144 merged/#5011 closed (F6 (f) updated), post-#4909 real-import miscount discovered, `bd init --external` auto-start gap, `federation sync` positional arg ignored. Drafts gate passed; bd queue updated under aae-orc-9h3f. |
 | Direct-mode TLS verification | 2026-07-30 | finding-001: the "bd server mode cannot speak TLS" premise behind the proxied-mode default was disproven (dummy-password discrimination against a deployed TLS-required instance; runtime TLS works on released 1.1.0/1.1.2, only `bd init` drops TLS, upstream #3895/#3679 unreleased). Design doc client-compat rewritten, B2 scope note (CREATE defect is proxied-only, #5079), F2 reframed, F6 gains (d)-(g), enroll.sh writes direct-mode vars first, doctor.sh warning retargeted. Upstream filing drafts staged in the orchestrator, gated on engagement review. |
