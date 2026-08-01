@@ -4,8 +4,9 @@
 > real deployments; the numbers cited come from an instrumented probe
 > (orchestrator finding-106) and from a live staging bring-up.
 > Topology 5 is designed but gated on upstream fixes. The capstone
-> (Section 6) is a working thesis with its supporting citations being
-> assembled; treat it as direction, not measurement.
+> (Section 6) is a working thesis: the tier taxonomy is ours, the
+> supporting practice is cited to primary sources. Direction, not
+> measurement.
 
 This document maps the ways a team can run beads (bd) on Dolt, from a
 single laptop to a multi-tier organization of humans and agents. Each
@@ -244,12 +245,98 @@ Why tiers, and why separate stores:
   with different account tiers and different conventions, so the
   infrastructure is the same recipe three times, tuned three ways.
 
-This mirrors what AI-native engineering teams report about their own
-role structure: the traditional planning roles compress, everyone
-prototypes at the bottom tier, and the scarce senior skill migrates
-to review, verification, and operations at the top. Supporting
-citations from the Claude Code team's public material are being
-assembled and will be added to this section with sources.
+### What the practice looks like at the source
+
+Anthropic's Claude Code team describes tiered rigor as lived
+practice, though never under that name. The three-store taxonomy and
+its promotion agents are this document's contribution; what follows
+is what the team says about their own pipeline, with sources.
+
+**Roles are already stage-indexed.** Boris Cherny (creator of Claude
+Code) proposes five archetypes on the team: "Prototyper: comes up
+with brand new ideas; churns out many ideas, most of which don't
+ship", "Builder: quickly turns a prototype/idea into
+production-grade product/infra", "Sweeper: cleans up the UI,
+simplifies the code and system, unships, optimizes performance",
+plus Grower and Maintainer, and he assigns different mixes to
+pre-product-market-fit, growing, and mature products [1]. That is a
+staffing claim about tiers, from the primary source.
+
+**The bottom tier exists because wrong bets are cheap.** Cat Wu
+(Head of Product, Claude Code): "Because you can prototype in an
+afternoon, wrong bets are cheap" [2]. The team replaced requirement
+documents with prototype-first work: roughly twenty prototypes of
+one feature in two days, and a three-day feature build where two
+days of work were deliberately thrown away [3]. Sid Bidasaria on the
+early team: "Most of what we did was prototype really quickly and
+build products that showcase how strong the underlying model is. We
+didn't have formal processes inside the team" [3].
+
+**The top gate stays human where blast radius is high.** Wu, on the
+record: "For the most critical changes to the core of Claude Code,
+and the cores of other products, there is always a code owner and
+they do manually review all the changes." For outer layers, agent
+review runs without a human, a state reached through months of
+per-file-path promotion based on measured catch rates, with
+incident-causing PRs added to the review gate's own eval set so the
+gate cannot regress [4]. A rigor gradient indexed to blast radius,
+with evidence-based promotion between levels: the boundary
+discipline this section proposes, described as shipped practice.
+
+**Review is the new bottleneck, which is why gates must be priced.**
+Anthropic reports that "more than 80% of the code we merge into
+Anthropic's codebase was authored by Claude", that per-engineer
+merged output rose several-fold, and that "speeding up one part of a
+process often just shifts the bottleneck elsewhere: overall pace is
+capped by the parts that haven't sped up". Their conclusion: "The
+rate at which organizations can spot and fix these bottlenecks may
+be a skill that improves over time, and it may become the most
+important skill for any organization" [5]. Adam Wolff, from the
+first agentically accelerated project: "Implementation used to be
+the expensive part of the loop. With AI in the workflow, the
+limiting factor is how fast you can collect and respond to
+feedback" [6]. Uniform rigor spends that scarce review budget where
+it buys nothing.
+
+**Promotion fixes the process, not the artifact.** Anthropic's
+large-scale migration writeup runs eight phase gates with
+adversarial review rounds, discards early end-to-end runs on
+purpose, validates its judges against deliberately broken code
+("Validate the judge. Run it against the original code to confirm
+it passes. Then run it against deliberately broken code to confirm
+it fails"), assigns bigger models to reviewers than to fan-out
+implementation, and promotes recurring review findings into the
+rulebook rather than hand-patching files: "you don't fix the code.
+You fix the process (loop) that produced the code" [7]. That is the
+promotion agent's job description at the tier boundary.
+
+Sources:
+
+1. Boris Cherny, X, 2026-06-28.
+   <https://x.com/bcherny/status/2071379474277613732>
+2. Cat Wu, "Product management on the AI exponential", Anthropic
+   blog, 2026-03-19.
+   <https://claude.com/blog/product-management-on-the-ai-exponential>
+3. Gergely Orosz, "How Claude Code is built", The Pragmatic
+   Engineer, 2025-09-23 (interviews with Cherny, Bidasaria, Wu).
+   <https://newsletter.pragmaticengineer.com/p/how-claude-code-is-built>
+4. Cat Wu and Thariq Shihipar, AI Engineer World's Fair fireside
+   chat, transcript by Simon Willison, 2026-07-21.
+   <https://simonwillison.net/2026/Jul/21/cat-and-thariq/>
+5. Marina Favaro and Jack Clark, "When AI builds itself", The
+   Anthropic Institute, 2026-06.
+   <https://www.anthropic.com/institute/recursive-self-improvement>
+6. Adam Wolff, QCon San Francisco 2025, reported by InfoQ,
+   2025-11-20. <https://www.infoq.com/news/2025/11/claude-ai-speed/>
+7. "How Anthropic runs large-scale code migrations with Claude
+   Code", Anthropic blog, 2026-07-16.
+   <https://claude.com/blog/ai-code-migration>
+
+A note on honesty: no Anthropic source proposes a named tier
+taxonomy, recommends tiering to other organizations, or uses the
+phrase "graduated quality gates". They describe their own practice;
+the generalization is ours. Quotes above are verbatim; surrounding
+characterizations are paraphrase against the cited URLs.
 
 What the tiers are NOT:
 
