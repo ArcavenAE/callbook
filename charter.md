@@ -5,7 +5,7 @@
 > for a collaborator who was present but does not persist. Follows the
 > kos process: Orient → Ideate → Question → Probe → Harvest → Promote.
 
-Last updated: 2026-08-01 (growth-path + patterns + sync-conflicts runbook drafted from the measured working-copy probe, orc finding-106; F8 updated)
+Last updated: 2026-08-03 (beads review-sweep response: #5087 refreshed, #5085 seam fixes, #5214 sentinel fix, siblings refreshed; F6 updated, finding-002)
 
 ---
 
@@ -251,6 +251,16 @@ replaced the leaky macOS captures; the brief at
 The (f) residual (no CLI flag; deliberate no-tls-key-in-metadata
 stance) is carried on PR #5178.
 
+2026-08-02 the maintainer swept the whole PR stack in one consolidated
+review round; 2026-08-03 we absorbed every fix that was ours to carry:
+#5087 refreshed onto moved main (a semantic weave with upstream's new
+provider-option and locked-preparation plumbing), #5085 gained the two
+requested seam fixes (credential-to-URL binding, mutex over fallback
+callbacks), #5214 gained its short-ciphertext sentinel fix, and
+#5207/#5214 were refreshed onto the corrected #5085. All heads
+MERGEABLE; CI awaits maintainer workflow approval. #5178 and the
+landing order remain maintainer-side. Full record: finding-002.
+
 Contribution vehicle: **ArcavenAE/beads** (fork of gastownhall/beads,
 tier-2 shape: origin=fork, upstream=gastownhall). Intent is
 contribute-back: issues with repro first, PRs where we can carry the
@@ -302,6 +312,7 @@ for direct mode instead).
 
 | Session | Date | Outcomes |
 |---------|------|----------|
+| Review-sweep response | 2026-08-03 | Maintainer's 2026-08-02 consolidated review of the PR stack verified claim-by-claim, then absorbed in one day: #5087 merged onto moved main (our create-policy options folded into upstream's new ProviderOption mechanism, probe-first moved under the migration lock via WithLockedPreparation, lock-order test updated); #5085 gained verifyPeerRemoteURL (fail closed on diverged or missing remote before installing credentials) and federationEnvMutex over the fallback callbacks, with three regressions; #5214 short ciphertext now classifies through CredentialKeyMismatchError; #5207 and #5214 refreshed onto corrected #5085 (#5207's whole review covered by the seam fix alone). All heads MERGEABLE; fork-PR CI awaits maintainer approval. ICU CGO test recipe captured (icu4c@78 include/lib paths); upstream review could not run these tests locally, ours did. finding-002; F6 updated; bd 9h3f noted. |
 | Growth path + patterns drafts | 2026-08-01 | docs/growth-path.md (steps 0-4), docs/patterns.md (six topologies incl. tiered-rigor capstone, Mermaid), docs/runbooks/sync-conflicts.md. Grounded in orc finding-106 (working-copy topology measured: auto-push built in, updated_at conflict class, SuperUser-to-push constraint, seeding + bootstrap mechanics). Capstone citations pending research. F8 updated. |
 | Scaffold | 2026-07-25 | Repo created. README, vision, enrollment, local-instance, dolt-service design record; Helm chart extracted + scrubbed (namePrefix parameterized, org label → callbook.arcaven.com, Datadog optional, storage-class neutral); kit v0 (install/doctor/enroll + launchd/systemd); compose recipe; AWS/GCP/Azure cloud notes. B1–B3 set, F1–F6 opened, G1–G3 ruled. Origin: generic extraction of a deployed per-project Dolt platform service + its beads-enrollment proposal. bd: aae-orc-z2t8. |
 | Contribution audit | 2026-07-31 | Every assertion in our 8 beads issues + 5 PRs re-tested empirically (14-agent verify + adversarial-refute workflow at orc; 113 assertions; orc finding-092). Substance held everywhere; flaws were evidence hygiene (transcript folds on #5080/#5084 carried the script pasted twice; dirty-tree counts on #5179/#5181) and overgeneralization sentences (#5177 host/user, #5085 body, #5086 comment mechanics). Corrections posted: real container-captured transcripts into #5080/#5084 bodies + comments, #5177 sentence + mechanism correction, #5179 count fix, #5086 staleness note. New upstream facts: #5144 merged/#5011 closed (F6 (f) updated), post-#4909 real-import miscount discovered, `bd init --external` auto-start gap, `federation sync` positional arg ignored. Drafts gate passed; bd queue updated under aae-orc-9h3f. |
