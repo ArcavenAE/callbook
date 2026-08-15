@@ -1,0 +1,68 @@
+id: question-cross-machine-write-topology
+type: question
+confidence: frontier
+title: "Cross-machine write topology for rapid agent-fleet workloads"
+content: |
+  The growth path (docs/growth-path.md Step 3) and topology map
+  (docs/patterns.md §4) present working-copies-with-a-hub as the
+  distributed default: each machine writes to its own local store and
+  syncs with a hub like git. That default assumes a coordination regime
+  it also documents: one active editor per bead, claim before edit,
+  discuss in comments not fields, and "if this happens weekly you have a
+  convention problem."
+
+  finding-003 confirms that regime does not hold for the intended
+  workload: many autonomous agents writing concurrently on each of
+  several machines, any agent touching any ticket, at machine speed.
+  callbook's own measurements show same-bead cross-machine edits conflict
+  almost always (the shared updated_at cell), there is no automatic
+  resolver (raw-dolt runbook only), and dolt's cross-machine transport is
+  single-writer-per-branch fast-forward, not multi-master. The
+  discipline-based middle position (local write authority to a SHARED
+  bead namespace + git-like sync + coordinate by hand) is the one point
+  that cannot survive rapid autonomous multi-writer.
+
+  Open question: which topology replaces pattern 4 as the agent-fleet
+  default. Three candidates from finding-003:
+    A. Partition write authority by machine/site (each machine sole
+       writer of a disjoint bead slice; reads replicate globally; merges
+       become clean disjoint fast-forwards). Preferred: preserves
+       local-first + immediate local + few-minute cross-machine, kills
+       the conflict class, extends pattern 6's store-per-domain instinct
+       onto the write-authority axis.
+    B. Central hub / thin clients (pattern 3): one source of truth, ACID,
+       no merge problem, but every write is a network hop with no local
+       authority or offline. Contradicts the local-first priority.
+    C. Build a bd-aware reconciliation layer (LWW on updated_at or
+       field-level CRDT) for true unrestricted multi-master. The only
+       path that makes "any agent, any bead, any machine, converges"
+       work as pattern 4 silently assumes. Does not exist in bd/dolt;
+       upstream-scale engineering.
+
+  Sub-questions:
+    - What is the natural partition key for option A (project label,
+      id-prefix, assignment)? Does bd's label-carried project membership
+      (orc finding-044) supply it directly?
+    - Read replication of others' slices: dolt read-replica pull
+      (dolt_read_replica_remote) vs a timer job vs remotesapi clone
+      refresh. Which meets the few-minute freshness at fleet scale?
+    - Does local write throughput even hold? dolt commits serialize;
+      probe single-per-machine-server throughput at expected agent
+      count before locking topology (finding-003 "to measure" section).
+    - If option C is ever pursued, is it a bd upstream contribution
+      (charter F5/F6) or a callbook-side merge driver?
+edges:
+  - target: finding-003-agent-fleet-multi-writer-breaks-working-copy-sync
+    type: derives-from
+provenance:
+  created_by: human
+  session: "2026-08-15"
+  created_at: "2026-08-15"
+
+notes: >
+  Reopens a decision that growth-path Step 3 and patterns.md §4 present
+  as settled. finding-003 qualifies those docs rather than contradicting
+  them: pattern 4 stays valid for human-pace, partitionable-work teams,
+  which is the deployment it was measured on. The validity-domain caveat
+  and the direction rewrite are a deliberate harvest pass, not done in
+  finding-003.
