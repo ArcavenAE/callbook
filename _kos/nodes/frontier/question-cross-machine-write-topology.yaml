@@ -33,11 +33,17 @@ content: |
     B. Central hub / thin clients (pattern 3): one source of truth, ACID,
        no merge problem, but every write is a network hop with no local
        authority or offline. Contradicts the local-first priority.
-    C. Build a bd-aware reconciliation layer (LWW on updated_at or
-       field-level CRDT) for true unrestricted multi-master. The only
-       path that makes "any agent, any bead, any machine, converges"
-       work as pattern 4 silently assumes. Does not exist in bd/dolt;
-       upstream-scale engineering.
+    C. Build or adopt a substrate with conflict-free merge (LWW on
+       updated_at or field-level CRDT) for true unrestricted
+       multi-master. The only path that makes "any agent, any bead, any
+       machine, converges" work as pattern 4 silently assumes. Does not
+       exist in bd/dolt; upstream-scale engineering. The 2026 substrate
+       survey (_kos/ideas/conflict-free-versioned-db-substrate-landscape.md)
+       finds no off-the-shelf system is versioned AND conflict-free AND
+       SQL at once: document CRDTs (Loro, Automerge) are versioned +
+       conflict-free but not SQL; cr-sqlite is SQL + conflict-free but
+       drops history. Any adoption is a bd-successor store, since bd is
+       dolt-coupled.
 
   Sub-questions:
     - What is the natural partition key for option A (project label,

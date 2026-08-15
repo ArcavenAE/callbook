@@ -26,7 +26,7 @@ once.
 
 ## What does NOT change: the local layer is already right
 
-Pattern 2 (shared local server) answers the local half completely and
+Pattern 2 (shared local server) answers the local half in full and
 needs no change. One `dolt sql-server` per machine, every local agent a
 SQL client of it, is a real ACID transactional server: many concurrent
 connections, read-after-write consistency, every local write visible to
@@ -123,13 +123,27 @@ B. Central hub, thin clients (pattern 3), no local write authority. One
    correct only if the network to the hub is fast enough that "local"
    and "hub" latency converge and offline is not required.
 
-C. Build a bd-aware automatic reconciliation layer. Last-writer-wins on
-   `updated_at`, or field-level CRDT semantics on the bead row, so true
-   multi-master converges without human resolution. This is the only
-   path that makes the unrestricted "any agent, any bead, any machine"
-   model work as written. It does not exist in bd or dolt today; it is
-   upstream-scale engineering, not a config change, and it is the honest
-   name for what pattern 4 silently assumes.
+C. Build or adopt a substrate with conflict-free multi-writer merge.
+   Last-writer-wins on `updated_at`, or field-level CRDT semantics on the
+   bead row, so true multi-master converges without human resolution.
+   This is the only path that makes the unrestricted "any agent, any
+   bead, any machine" model work as written. It does not exist in bd or
+   dolt today; it is upstream-scale engineering, not a config change, and
+   it is the honest name for what pattern 4 silently assumes.
+
+   A 2026 substrate survey (this repo,
+   _kos/ideas/conflict-free-versioned-db-substrate-landscape.md) confirms
+   no off-the-shelf system delivers all three of {versioned/git-like,
+   conflict-free multi-writer, SQL/graph query}. Prolly trees (Dolt, the
+   Rust prollytree crate) give structural convergence but 3-way merge
+   with conflicts, not conflict-free semantic merge. The only family that
+   is both versioned and conflict-free is the document CRDTs (Loro,
+   Automerge), which have no SQL. The only family that is both SQL and
+   conflict-free (cr-sqlite) discards value history today. So option C is
+   a genuine build against a document-CRDT core (Loro/Automerge) with a
+   query layer added, or a wait on cr-sqlite v2; and because bd is
+   dolt-coupled, any of these is a bd-successor store, not a bd config
+   change. That cost is what keeps option A the near-term recommendation.
 
 The position pattern 4 currently occupies (local write authority to a
 shared bead namespace, git-like sync, coordination by human discipline)
