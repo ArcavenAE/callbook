@@ -24,15 +24,17 @@ content: |
 
   Open question: which topology replaces pattern 4 as the agent-fleet
   default. Three candidates from finding-003:
-    A. Partition write authority by machine/site (each machine sole
-       writer of a disjoint bead slice; reads replicate globally; merges
-       become clean disjoint fast-forwards). Preferred: preserves
-       local-first + immediate local + few-minute cross-machine, kills
-       the conflict class, extends pattern 6's store-per-domain instinct
-       onto the write-authority axis.
-    B. Central hub / thin clients (pattern 3): one source of truth, ACID,
-       no merge problem, but every write is a network hop with no local
-       authority or offline. Contradicts the local-first priority.
+    A. Partition write authority by machine/site. STRUCK (finding-004):
+       violates the fundamental goal of massively distributed agents
+       working on the SAME projects at the SAME time. A disjoint bead
+       slice per machine is the exact thing the goal forbids. Removed
+       from consideration.
+    B. Coordinate at write time: central hub / thin clients (pattern 3),
+       or a strongly-consistent distributed SQL DB (CockroachDB,
+       Yugabyte, Spanner) where every node accepts every write and the
+       store coordinates internally. Any agent writes any bead; keeps SQL
+       and invariants; cost is write latency and no offline. Contradicts
+       the local-first priority.
     C. Build or adopt a substrate with conflict-free merge (LWW on
        updated_at or field-level CRDT) for true unrestricted
        multi-master. The only path that makes "any agent, any bead, any
@@ -45,7 +47,22 @@ content: |
        drops history. Any adoption is a bd-successor store, since bd is
        dolt-coupled.
 
+  Governing constraint (finding-004): CALM. Coordination-free convergence
+  is possible iff the workload is monotonic. Non-monotonic invariants
+  (unique id at creation, at-most-one-claim, no-close-with-open-children)
+  provably require coordination; no substrate escapes this. So the choice
+  reduces to two horns: B (coordinate at write) or C (CRDT, give up
+  enforced invariants), or a hybrid (CRDT for the monotonic majority +
+  a coordination sidecar for the few non-monotonic checks). The deciding
+  input is an invariant inventory, not a substrate pick. callbook's
+  "one active editor per bead, claim before edit" was a hidden manual
+  coordination protocol for exactly the invariant CALM forbids for free.
+
   Sub-questions:
+    - THE deciding question: which bead operations must enforce an
+      invariant globally and immediately across all agents, versus which
+      can converge after the fact? That inventory selects horn B, C, or
+      hybrid.
     - What is the natural partition key for option A (project label,
       id-prefix, assignment)? Does bd's label-carried project membership
       (orc finding-044) supply it directly?
@@ -59,6 +76,8 @@ content: |
       (charter F5/F6) or a callbook-side merge driver?
 edges:
   - target: finding-003-agent-fleet-multi-writer-breaks-working-copy-sync
+    type: derives-from
+  - target: finding-004-calm-constraint-coordination-or-crdt-not-partition
     type: derives-from
 provenance:
   created_by: human

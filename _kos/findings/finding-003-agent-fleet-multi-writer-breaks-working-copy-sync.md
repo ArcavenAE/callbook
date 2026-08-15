@@ -154,6 +154,12 @@ so rather than recommend it first for agent fleets.
 
 ## Recommendation
 
+Superseded on the cross-machine half by finding-004: option A is struck
+by the product goal (massively distributed agents on the same projects
+at the same time forbids partitioning write authority), and the choice
+is governed by CALM, reducing to coordinate-at-write vs CRDT vs hybrid.
+The recommendation below stands only for the local layer.
+
 - Keep pattern 2 as the local layer, unchanged, one server per machine.
 - Change the cross-machine default for agent-fleet workloads from
   pattern 4 to option A (partitioned write authority). Frame it as an
