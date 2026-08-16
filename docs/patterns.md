@@ -1,12 +1,21 @@
 # Patterns of Use: from one laptop to a tiered team pipeline
 
-> Status: DRAFT (2026-08-01). Topologies 1 through 4 are measured on
-> real deployments; the numbers cited come from an instrumented probe
-> (orchestrator finding-106) and from a live staging bring-up.
-> Topology 5 is designed but gated on upstream fixes. The capstone
-> (Section 6) is a working thesis: the tier taxonomy is ours, the
+> Status: DRAFT (2026-08-01; revised 2026-08-16). Topologies 1
+> through 4 are measured on real deployments; the numbers cited come
+> from an instrumented probe (orchestrator finding-106) and from a
+> live staging bring-up. Topology 5 (the agent-fleet write plane) is
+> design: its write plane is topology 3's deployed service unchanged,
+> its derivation is recorded in _kos/findings/ findings 003 through
+> 006, and its fleet-scale deployment is not yet drilled. Topology 6
+> (federation) is designed upstream but gated on fixes. The capstone
+> (Section 7) is a working thesis: the tier taxonomy is ours, the
 > supporting practice is cited to primary sources. Direction, not
 > measurement.
+>
+> Revision note (2026-08-16): pattern 4 now carries its validity
+> domain (human-pace teams on partitionable work); pattern 5 is the
+> agent-fleet default; federation and the capstone renumbered 5 to 6
+> and 6 to 7.
 
 This document maps the ways a team can run beads (bd) on Dolt, from a
 single laptop to a multi-tier organization of humans and agents. Each
@@ -25,6 +34,9 @@ A vocabulary note used throughout:
 - **tier accounts**: admin, read-write, read-only SQL accounts. One
   hard fact shapes everything: pushing to a hub over remotesapi
   requires SuperUser on that hub; pulling requires only CLONE_ADMIN.
+- **write plane**: a project's coordinated write authority: the hub's
+  SQL surface, where writes and claims serialize. Distinct from the
+  read plane (replicas, projections, dashboards), which may lag.
 
 ## 1. Solo local
 
@@ -71,6 +83,13 @@ bd's auto-start then manufactures an empty database whose failure
 reads as an authentication error. Never commit host-specific
 connection settings; see the kit's doctor notes.
 
+One discipline to adopt from day one here: the SPAWNER stamps a
+durable actor name (`BEADS_ACTOR`, from the person's name pool) into
+every session, so concurrent sessions stay distinguishable.
+Attribution is one environment variable on stock bd 1.1.2 (create
+records created_by, claim writes assignee; finding-006), and every
+later pattern assumes it.
+
 ## 3. Hub with thin clients
 
 An always-on server (Kubernetes recipe in this repo, or a VM) with
@@ -97,8 +116,10 @@ team is always-connected and simplicity beats resilience.
 
 Every machine runs its own local store (pattern 1 or 2) and syncs
 with a shared hub by push and pull, exactly like git. This is bd's
-documented cross-machine model, and the pattern a distributed
-agent+human team should reach for first.
+documented cross-machine model, and the right first reach for a
+distributed team working at HUMAN pace on a partitionable backlog.
+It is not the fleet pattern: at machine speed its coordination
+convention breaks (see the validity domain below, and pattern 5).
 
 ```mermaid
 flowchart TD
@@ -149,6 +170,16 @@ The convention that makes conflicts rare instead of constant:
 3. Creates are always safe; do not serialize them.
 4. When a conflict happens anyway, it is boring: run the runbook.
 
+Validity domain (added 2026-08-16, finding-003): the convention above
+is a human-pace coordination protocol standing in for an invariant
+(one active editor per bead) that no replicated store grants for free
+(finding-004, the CALM constraint). Autonomous agent fleets cannot
+hold it: many agents touch the same beads inside every sync window,
+the updated_at conflict class arrives constantly rather than weekly,
+and the raw-dolt runbook becomes a standing tax. For that workload,
+reach for pattern 5. For human-pace teams this remains the measured,
+recommended shape.
+
 Governance note: because remotesapi pushes require SuperUser, every
 working-copy WRITER holds full SQL admin on the hub. Acceptable for a
 trusted team; wrong for open enrollment. Until upstream offers a
@@ -160,7 +191,80 @@ Bootstrap for each new machine is two artifacts: the shareable
 and per-machine credentials delivered out-of-band (never committed).
 `bd bootstrap --yes` does the rest.
 
-## 5. Federation: another person, another project
+## 5. Central write plane with edge read replicas: the agent fleet
+
+> Honesty label: this pattern is design, not a drilled deployment.
+> Its write plane is pattern 3's deployed, verified service unchanged;
+> the new parts are the read-replica edge and the identity discipline.
+> Derivation: _kos/findings/ findings 003 through 006.
+
+The workload that forces this pattern: many autonomous agents on many
+machines, all working the SAME projects at the SAME time, at machine
+speed, each needing its own identity on every write. Pattern 4's
+convention ("one active editor per bead, claim before editing") is a
+human-pace protocol; fleets cannot hold it (finding-003).
+
+The governing fact (finding-004): claim exclusivity is a
+non-monotonic invariant, and no storage engine grants one
+coordination-free. A claim IS a lock acquisition, and locks want a
+lock manager. bd agrees on both counts: `bd update --claim` is atomic
+against one store, and upstream's merge-slot is exactly such an
+exclusive-access primitive.
+
+```mermaid
+flowchart TD
+    subgraph cloud["project write plane (always on)"]
+        HUB[("dolt sql-server<br/>writes + claims serialize here<br/>TLS required")]
+    end
+    subgraph mA["machine A (agent fleet)"]
+        A1["agents, each under<br/>its own actor name"]
+        RA[("read replica<br/>pull timer")]
+        A1 -->|"bulk reads: bd ready,<br/>history, dashboards"| RA
+    end
+    subgraph mB["machine B (agent fleet)"]
+        B1["agents"]
+        RB[("read replica")]
+        B1 --> RB
+    end
+    A1 -->|"TLS SQL: writes, claims,<br/>freshness-critical reads"| HUB
+    B1 -->|"TLS SQL"| HUB
+    HUB -. "replication pull" .-> RA
+    HUB -. "replication pull" .-> RB
+```
+
+The shape, in four rules:
+
+1. **Writes and claims go to the project's write plane** (the pattern
+   3 service). Any agent on any machine writes any bead as a TLS SQL
+   client under its own actor name. The server serializes;
+   at-most-one-claim holds by construction; the pattern-4 merge class
+   does not exist here.
+2. **Reads scale at the edge.** Each site that wants them runs a read
+   replica (pulling on a short timer) for agent polling, dashboards,
+   and history tooling. Freshness-critical reads (is this still open,
+   did my claim land) go to the write plane; the split lands exactly
+   on the coordination seam.
+3. **Identity rides every write.** The spawner stamps `BEADS_ACTOR`
+   from the person's name pool ([vision.md](vision.md)); agents never
+   self-report. Verified on stock bd 1.1.2 (finding-006).
+4. **The replica doubles as warm DR and the offline READ story.**
+   There is no offline WRITE story in this pattern; that is the price
+   of enforced claims, paid deliberately. A fleet machine that loses
+   the write plane keeps reading and queues its writes at the
+   application layer, or waits.
+
+Costs: the write plane is a per-project availability point (pattern
+3's warm standby applies); far-flung writers pay a network round trip
+per write. Breaks first: per-project write throughput. Dolt commits
+serialize, so measure at your fleet's real write rate before scaling
+the fleet, and reach for bd's batched commit policy when it bites.
+
+Governance win over pattern 4: fleet writers need only the rw tier.
+The SuperUser-to-push constraint belongs to remotesapi working-copy
+pushes and does not apply to SQL clients; "can write" stops meaning
+"is an administrator", and read-only machines stay on the ro tier.
+
+## 6. Federation: another person, another project
 
 Everything above is one team sharing ONE store. Federation is
 different: two INDEPENDENT stores (another person's project, another
@@ -182,12 +286,13 @@ flowchart LR
 
 Choose federation when the other side is not you: they keep their own
 authority, their own accounts, their own retention. Do not reach for
-it inside one team; pattern 4 is simpler and stronger there. Status:
+it inside one team; pattern 4 (human pace) or pattern 5 (fleets) is
+simpler and stronger there. Status:
 designed upstream but young; known gaps are tracked in this repo's
 charter (F6), including peer-credential handling. Treat as a
 direction with a working skeleton, not a drilled recipe.
 
-## 6. Capstone: the tiered pipeline (differing levels of rigor)
+## 7. Capstone: the tiered pipeline (differing levels of rigor)
 
 The patterns above answer "how do machines share a store". This one
 answers "how should a TEAM shape its work". The thesis: a team of
@@ -242,8 +347,9 @@ Why tiers, and why separate stores:
   claims and reviews, single-active-editor, conventional gates. Ops:
   restricted writers, change windows, every bead traceable to a
   drill, an incident, or a change record. These are pattern-4 hubs
-  with different account tiers and different conventions, so the
-  infrastructure is the same recipe three times, tuned three ways.
+  (pattern-5 write planes where a tier's workers are autonomous
+  fleets) with different account tiers and different conventions, so
+  the infrastructure is the same recipe three times, tuned three ways.
 
 ### What the practice looks like at the source
 
@@ -364,10 +470,13 @@ per store.
 | One person, one machine | 1. Solo local |
 | Many agents, one machine | 2. Shared local server |
 | Small always-online team | 3. Hub with thin clients |
-| Distributed team, offline matters, agent isolation | 4. Working copies with a hub |
-| A second team or an external collaborator | 5. Federation |
-| Enough throughput that rigor policy is a bottleneck | 6. Tiered pipeline (of pattern-4 hubs) |
+| Distributed team at human pace; offline writes matter | 4. Working copies with a hub |
+| Agent fleet: many machines, same projects, machine speed | 5. Central write plane + edge read replicas |
+| A second team or an external collaborator | 6. Federation |
+| Enough throughput that rigor policy is a bottleneck | 7. Tiered pipeline (of pattern-4/5 hubs) |
 
-Patterns 1 and 2 are on-ramps to 4; 3 is a simplification of 4 you
-can promote later (the hub is already there); 6 is 4 applied several
-times with intent.
+Patterns 1 and 2 are on-ramps to 4 and 5; 3 is both a simplification
+of 4 and the write plane of 5; 7 is 4 or 5 applied several times with
+intent. The pace question decides between 4 and 5: humans holding a
+claim convention take 4; autonomous fleets take 5, because their
+claims must be enforced, not agreed.

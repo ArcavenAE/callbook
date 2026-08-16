@@ -1,11 +1,16 @@
 # The Growth Path: solo laptop to distributed team, one step at a time
 
-> Status: DRAFT (2026-08-01). Steps 0 through 2 are extracted from
-> deployed, drilled infrastructure. Step 3 is measured end to end on
-> a live staging bring-up plus an instrumented local probe; its
-> multi-machine rehearsal is in progress. Step 4 is design.
-> Honesty labels per this repo's convention: anything not verified on
-> a live deployment says so.
+> Status: DRAFT (2026-08-01; revised 2026-08-16). Steps 0 through 2
+> are extracted from deployed, drilled infrastructure. Step 3 is
+> measured end to end on a live staging bring-up plus an instrumented
+> local probe; its multi-machine rehearsal is in progress. Step 4 is
+> design. Honesty labels per this repo's convention: anything not
+> verified on a live deployment says so.
+>
+> Revision note (2026-08-16): step 1 gains the actor-stamping rule,
+> and step 3 splits by pace: working copies for human-pace teams, the
+> central write plane with edge read replicas for agent fleets.
+> Derivation: _kos/findings/ findings 003 through 006.
 
 Every team starts as one person. This document is the recipe spine of
 callbook: each step is a working state, each transition is small, and
@@ -50,7 +55,7 @@ What changes: a `dolt sql-server` on localhost owns the store; every
 session connects to it; a periodic JSONL export gives you a
 git-trackable projection for viewers and an air-gap layer.
 
-Two hard-won rules from real deployments:
+Three hard-won rules from real deployments:
 
 1. **Never commit a host-specific pointer.** Connection settings that
    name a host, port, or user belong outside version control. A
@@ -62,6 +67,14 @@ Two hard-won rules from real deployments:
    Auto-start has no correct behavior when a managed server is
    supposed to exist: honest "connection refused" beats a plausible
    empty database.
+3. **The spawner stamps a durable actor name into every session.**
+   Export `BEADS_ACTOR` from the process that launches each agent
+   (name pools per [vision.md](vision.md)); agents do not
+   self-report. With the name stamped, `bd create` records it in
+   created_by and `bd update --claim` writes it into assignee on
+   stock bd 1.1.2 (finding-006). Skip this and every session
+   resolves to one human, which is exactly the attribution hole an
+   agent fleet cannot afford.
 
 ## Step 2: the always-on hub (cloud or closet)
 
@@ -84,7 +97,10 @@ keychain), delivered to each machine out-of-band, never committed.
 
 The hub gives you pattern 3 immediately (everyone connects as a
 direct TLS client) and is the prerequisite for step 3. If your whole
-team is always-online, you can simply stop here.
+team is always-online, you can simply stop here. Agent fleets stop
+here for the WRITE plane permanently: fleet writes and claims stay on
+the hub at any scale, and step 3's fleet form adds read replicas only
+(pattern 5 in [patterns.md](patterns.md)).
 
 **Order of bring-up matters** (measured the hard way): DNS delegation
 for certificate issuance FIRST, then the service, then the SQL
@@ -101,6 +117,15 @@ applies, and the service must serve TLS before accounts apply.
 The trigger: offline work, resilience, or agent isolation; any of the
 three. Each machine keeps its own local store (step 0 or step 1
 form), and syncs with the hub like git.
+
+Split by pace before adopting this step (2026-08-16). The
+working-copy shape below is for HUMAN-pace teams: it relies on the
+claim-before-edit convention, which autonomous fleets cannot hold
+(finding-003), and claim exclusivity itself needs one coordination
+point (finding-004). An agent fleet's step 3 is pattern 5 instead:
+keep every write and claim on the hub, run a read replica per site
+for polling, dashboards, history tooling, and DR, and stamp actors at
+spawn. The rest of this step describes the human-pace shape.
 
 Enrollment of a new machine is deliberately boring:
 
@@ -151,12 +176,13 @@ Two different triggers, two different answers:
 
 - **Another team or an external collaborator** wants to exchange
   beads with you while keeping their own authority: that is
-  federation (pattern 5). Designed upstream, young; watch this repo's
+  federation (pattern 6). Designed upstream, young; watch this repo's
   charter F6 for the gaps that matter.
 - **Your own throughput** makes one rigor policy wrong for both your
   prototypes and your production: that is the tiered pipeline
-  (pattern 6), several pattern-4 hubs with different account policies
-  and conventions, connected by promotion agents.
+  (pattern 7), several pattern-4 hubs (or pattern-5 write planes,
+  for fleet tiers) with different account policies and conventions,
+  connected by promotion agents.
 
 Both reuse everything below them. Nothing on this path is discarded;
 each step is the previous step plus one capability.
@@ -168,5 +194,5 @@ each step is the previous step plus one capability.
 | 0 | solo, embedded, git-remote backup | concurrent sessions |
 | 1 | shared local server | second machine / teammate / cloud agent |
 | 2 | always-on hub, tier accounts | offline, resilience, isolation |
-| 3 | working copies + hub | another team, or rigor pressure |
+| 3 | human pace: working copies + hub; fleets: central writes + edge read replicas | another team, or rigor pressure |
 | 4 | federation and/or tiers | (you are running an organization now) |

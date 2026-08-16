@@ -76,13 +76,27 @@ Spelled out, because it is a first-class mode and not a degraded one:
   tier suffices; it carries `CLONE_ADMIN`); work offline; `dolt pull` /
   `dolt push` or `bd federation sync` on reconnect. Conflicts pause for
   manual resolution by default (`--strategy theirs|ours` to
-  auto-resolve).
+  auto-resolve). This is the human-pace shape; an agent fleet keeps
+  writes and claims on the shared tracker and runs the local instance
+  as a read replica instead (pattern 5 in patterns.md).
 - **Air-gap-tolerant channels.** The git channel (`refs/dolt/data` via
   `bd dolt push/pull`) and file/S3 dolt remotes need no reachable
   server at all.
 - **Recovery.** If you run the backup store from the production recipe,
   it doubles as a bootstrap source: `dolt clone` from the backup remote
   on any credentialed host.
+
+## The local instance in an agent fleet
+
+When this machine hosts autonomous agents working shared projects,
+the local instance's role shifts. It stays authoritative for
+local-only projects. For enrolled projects it serves as read replica
+and cache (agent polling, dashboards, history tooling, warm DR),
+while every write and claim goes to the project's tracker under the
+agent's own actor name, stamped by the spawner (`BEADS_ACTOR`).
+Freshness-critical reads (is this bead still open, did my claim land)
+go to the tracker; everything else may lag seconds. Derivation:
+_kos/findings/ findings 003 through 006.
 
 ## Failure modes we hit so you don't
 

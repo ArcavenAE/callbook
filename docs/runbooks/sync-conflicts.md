@@ -2,6 +2,9 @@
 
 > Scope: pattern 4 in [patterns.md](../patterns.md), a working copy
 > syncing against a hub. Verified on bd 1.1.2 with Dolt 2.2.3.
+> This conflict class belongs to human-pace working copies; agent
+> fleets on pattern 5 (central write plane) do not produce it, since
+> their writes serialize at the tracker.
 
 ## When you are here
 

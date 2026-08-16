@@ -5,7 +5,7 @@
 > for a collaborator who was present but does not persist. Follows the
 > kos process: Orient → Ideate → Question → Probe → Harvest → Promote.
 
-Last updated: 2026-08-03 (beads review-sweep response: #5087 refreshed, #5085 seam fixes, #5214 sentinel fix, siblings refreshed; F6 updated, finding-002)
+Last updated: 2026-08-16 (agent-fleet reframe: findings 003-006 + write-plane ruling harvested into docs; F10 opened, B3 evidence added, F6 candidates noted)
 
 ---
 
@@ -90,6 +90,12 @@ per store; long-lived service agents get individually revocable named
 accounts. Three standard account tiers per project (admin/rw/ro).
 Full model: `docs/vision.md`, `docs/enrollment.md`.
 
+Attribution verified live on stock bd 1.1.2 (finding-006, 2026-08-16):
+with `BEADS_ACTOR` stamped by the spawner, create records the actor in
+created_by and `--claim` writes it into assignee. The stamping is the
+spawner's job (agents cannot self-derive identity on today's
+harnesses).
+
 ---
 
 ## Frontier
@@ -127,10 +133,11 @@ dolt sql-server + certbot/ACME TLS), DigitalOcean, Cloudflare
 Spectrum territory). The growth-path doc, the recipe/template heart
 of the project, now exists as a draft: `docs/growth-path.md`
 (steps 0-4, honesty-labeled), with the topology map in
-`docs/patterns.md` (six patterns incl. the tiered-rigor capstone,
-Mermaid diagrams) and `docs/runbooks/sync-conflicts.md` (the
-measured same-bead conflict resolution). Backing measurements:
-orchestrator finding-106. Substrate recipes remain open.
+`docs/patterns.md` (seven patterns incl. the agent-fleet write plane
+and the tiered-rigor capstone, Mermaid diagrams) and
+`docs/runbooks/sync-conflicts.md` (the measured same-bead conflict
+resolution). Backing measurements: orchestrator finding-106.
+Substrate recipes remain open.
 
 ### F9: Operational layers (marvel-managed vs standalone vs parts)
 
@@ -244,6 +251,13 @@ aae-orc finding-081 (`import --dry-run` never consults the db): the real
 run and the dry run compute their counts independently, which is the
 underlying weakness.
 
+Candidates pending the bd HEAD survey (see F10, finding-006): (j)
+what populates the dormant agent columns (`agent_state`,
+`last_activity`, `rig`; empty through create/claim/close on 1.1.2
+even with the actor stamped); (k) dolt commit authorship from the bd
+actor (every dolt commit reads `beads <beads@local>` today). Verify
+against HEAD before filing either.
+
 The (e) drafts were FILED 2026-07-31 (#5200, #5201) after the audit
 (orc finding-092) passed their gate and container-clean transcripts
 replaced the leaky macOS captures; the brief at
@@ -266,6 +280,40 @@ tier-2 shape: origin=fork, upstream=gastownhall). Intent is
 contribute-back: issues with repro first, PRs where we can carry the
 fix. This is NOT the F5 feature-fork; F5's trigger is unchanged.
 Work-queue anchor: aae-orc-9h3f.
+
+### F10: Agent-fleet write topology and the identity plane [write plane ruled 2026-08-16]
+
+The operator goal (massively distributed agents working the same
+projects at the same time, each under its own identity) reframed the
+distributed default. Findings 003 through 006 carry the arc: pattern
+4's discipline model breaks at machine speed (003); the CALM
+constraint makes claim exclusivity coordination-bound, so the choice
+is coordinate-at-write vs CRDT-without-invariants, never partition
+(004; 2026 substrate survey in
+`_kos/ideas/conflict-free-versioned-db-substrate-landscape.md`:
+nothing off-the-shelf is versioned AND conflict-free AND SQL);
+multi-author is the identity plane, not the topology, and
+at-most-one-claim is the first confirmed invariant (005); attribution
+works today on stock bd 1.1.2 by stamping `BEADS_ACTOR` at spawn,
+while the liveness columns are dormant and upstream is visibly
+building the multi-agent layer: rigs, cross-rig gates, an exclusive
+merge-slot, heartbeat wisps (006).
+
+RULED 2026-08-16 (operator): the write plane is the coordinated
+per-project store (B1's service); no standing requirement needs
+distributed writes. Docs harvested same day: patterns.md pattern 5
+(+ renumber), growth-path step-1 actor rule + step-3 pace fork,
+vision claims-are-locks principle, README fleet mode + opinion 6,
+local-instance fleet role, sync-conflicts scope.
+
+Still open: the read-replica edge recipe (dolt read-replica config,
+pull cadence, doctor checks, kit support); the per-instance write
+throughput envelope (dolt commits serialize; measure at fleet write
+rates); the liveness mechanism (survey bd HEAD for what populates
+`agent_state`/`last_activity` before building anything; heartbeat
+wisps exist as a type); the rig convention
+(`_kos/ideas/rig-as-runtime-locus.md`). Node:
+`_kos/nodes/frontier/question-cross-machine-write-topology.yaml`.
 
 ---
 
@@ -312,6 +360,7 @@ for direct mode instead).
 
 | Session | Date | Outcomes |
 |---------|------|----------|
+| Agent-fleet reframe + docs harvest | 2026-08-15..16 | Operator goal (massively distributed agents, same projects, same time, own identities) reframed the distributed default. findings 003-006: pattern-4 discipline breaks at machine speed; CALM rules the choice (coordinate vs CRDT; partition struck by the goal); multi-author is the identity plane, at-most-one-claim the first confirmed invariant; bd 1.1.2 re-survey (attribution live via spawner-stamped BEADS_ACTOR: created_by + assignee verified on the running store; agent_state/last_activity/rig dormant; upstream building rigs, cross-rig gates, merge-slot, heartbeat wisps; wisps are a parallel table family excluded from JSONL export). 2026 substrate survey: no off-the-shelf store is versioned AND conflict-free AND SQL (document CRDTs closest, no SQL; cr-sqlite drops history). Write plane RULED central per project (operator, 2026-08-16). Docs harvest: patterns.md pattern 5 + validity domain on 4 + renumber (federation 6, capstone 7) + write-plane vocabulary; growth-path step-1 actor rule + step-3 pace fork; vision fourth problem (coordination) + claims-are-locks principle + spawner-stamps + rig direction; README fleet mode + opinion 6; local-instance fleet role; sync-conflicts scope note; B3 evidence; F6 candidates (j)(k); F10 opened. Ideas: conflict-free-versioned-db-substrate-landscape, rig-as-runtime-locus. Node: question-cross-machine-write-topology (4 findings edged). |
 | Review-sweep response | 2026-08-03 | Maintainer's 2026-08-02 consolidated review of the PR stack verified claim-by-claim, then absorbed in one day: #5087 merged onto moved main (our create-policy options folded into upstream's new ProviderOption mechanism, probe-first moved under the migration lock via WithLockedPreparation, lock-order test updated); #5085 gained verifyPeerRemoteURL (fail closed on diverged or missing remote before installing credentials) and federationEnvMutex over the fallback callbacks, with three regressions; #5214 short ciphertext now classifies through CredentialKeyMismatchError; #5207 and #5214 refreshed onto corrected #5085 (#5207's whole review covered by the seam fix alone). All heads MERGEABLE; fork-PR CI awaits maintainer approval. ICU CGO test recipe captured (icu4c@78 include/lib paths); upstream review could not run these tests locally, ours did. finding-002; F6 updated; bd 9h3f noted. |
 | Growth path + patterns drafts | 2026-08-01 | docs/growth-path.md (steps 0-4), docs/patterns.md (six topologies incl. tiered-rigor capstone, Mermaid), docs/runbooks/sync-conflicts.md. Grounded in orc finding-106 (working-copy topology measured: auto-push built in, updated_at conflict class, SuperUser-to-push constraint, seeding + bootstrap mechanics). Capstone citations pending research. F8 updated. |
 | Scaffold | 2026-07-25 | Repo created. README, vision, enrollment, local-instance, dolt-service design record; Helm chart extracted + scrubbed (namePrefix parameterized, org label → callbook.arcaven.com, Datadog optional, storage-class neutral); kit v0 (install/doctor/enroll + launchd/systemd); compose recipe; AWS/GCP/Azure cloud notes. B1–B3 set, F1–F6 opened, G1–G3 ruled. Origin: generic extraction of a deployed per-project Dolt platform service + its beads-enrollment proposal. bd: aae-orc-z2t8. |

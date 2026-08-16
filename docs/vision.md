@@ -6,7 +6,7 @@
 
 ## The problem
 
-Agent teams break conventional trackers in three ways:
+Agent teams break conventional trackers in four ways:
 
 1. **Volume and ephemerality.** A person may run five agents today and
    forty tomorrow; sessions are killed freely. Per-seat SaaS licensing and
@@ -16,7 +16,14 @@ Agent teams break conventional trackers in three ways:
    are good at what), even when the agent itself lived for twenty minutes.
 3. **Locality.** Agents run where the work is: laptops, CI, ephemeral
    sandboxes, air-gapped environments. A tracker that requires a live
-   connection to a central service excludes half the fleet.
+   connection for READING excludes half the fleet; reads and solo
+   work must stay local-first. Writes are a different matter: see the
+   claims principle below.
+4. **Coordination.** Autonomous agents claim work. A claim must be
+   exclusive (two agents must never both own one bead), visible
+   fleet-wide the moment it lands, and attributable to the claimant.
+   Human teams hold that invariant by convention; fleets need it
+   enforced.
 
 beads (`bd`) answers the data model: issues as versioned rows in Dolt,
 git-like branch/diff/merge semantics, a local-first daemon, JSONL
@@ -46,6 +53,33 @@ migration is a re-pointing, not a re-architecture:
   fail-closed): when a token issuer exists, every enrolled identity starts
   presenting tokens and nothing else moves.
 
+## Design principle: claims are locks
+
+A claim is an exclusive lock acquisition: at most one actor holds a
+bead. That is an invariant no replicated store grants coordination-free
+(the CALM constraint; derivation in _kos/findings/ findings 003 and
+004), and bd agrees: `bd update --claim` is atomic against one store,
+and upstream's merge-slot is the same admission. So callbook splits
+three planes deliberately, and refuses to let one masquerade as
+another:
+
+- **Identity plane** (this document): every actor writes under its own
+  durable name, stamped by its spawner. Multi-author is an identity
+  property, not a topology property.
+- **Write plane**: per project, one coordinated store (the production
+  recipe's instance). Any agent anywhere writes and claims there, as
+  itself, over TLS. At-most-one-claim holds by construction; no merge
+  class exists.
+- **Read plane**: replicas wherever they help: polling fleets,
+  dashboards, history tooling, offline reading, warm DR.
+  Freshness-critical reads (is it still open, did my claim land) go to
+  the write plane; everything else may lag seconds.
+
+Working copies that push whole histories remain the right shape for
+human-pace teams and for federation between sovereign teams; they are
+not the fleet shape. The topology map is
+[patterns.md](patterns.md); the fleet pattern is its pattern 5.
+
 ## The actor model
 
 ### Humans
@@ -60,7 +94,12 @@ identity.
 Each person maintains a **name pool**: a set of durable, memorable actor
 names recorded in the project docs. Agents draw names from the pool:
 
-- Each agent session sets `BEADS_ACTOR` to its pool name.
+- Each agent session carries `BEADS_ACTOR` set to its pool name, and
+  the SPAWNER exports it (the launcher, orchestrator, or wrapper that
+  starts the session): on today's harnesses an agent cannot derive
+  its own identity, so stamping is the spawner's job, never
+  self-report. Verified on stock bd 1.1.2: create records the actor
+  in created_by, claim writes it into assignee (finding-006).
 - Each distinct store sets its own `node_id`.
 - Ephemeral agents are fresh sessions under a pool name. Kill freely;
   the name persists, the session doesn't.
@@ -80,6 +119,17 @@ CI runners and standing automations are not troupe members; they get
 their own named account (e.g. `<project>_agent_ci`), individually
 scoped and individually revocable. When one is compromised or retired,
 you revoke *it*, not the team.
+
+### Where an actor runs (direction)
+
+bd's schema carries a `rig` column and a cross-rig address grammar
+(`<rig>:<bead-id>`), upstream's own name for an installation. The
+direction under evaluation: rig as the actor's runtime locus, with one
+known mapping per runtime kind (an orchestrator id plus workspace, a
+human plus directory, a session surrogate, a factory instance). The
+actor answers WHO; the rig answers WHERE, which is the first hop of
+"who do I check with." Constraints and open questions:
+_kos/ideas/rig-as-runtime-locus.md.
 
 ## Enrollment phases
 
@@ -143,7 +193,10 @@ per-actor-authentication requirement, not before.
 
 - **Not a fork of beads** (today). Stock `bd` + Dolt, deployed with
   opinions. Gaps get upstream issues first; a feature fork that tracks
-  upstream and offers changes back is a recorded likely-future.
+  upstream and offers changes back is a recorded likely-future. bd is
+  itself growing the multi-agent layer (rigs, cross-rig gates, an
+  exclusive merge-slot, heartbeat wisps; finding-006); callbook rides
+  that trajectory rather than parallel-building it.
 - **Not a hosted service.** Recipes and tooling; you run it.
 - **Not a project-management methodology.** It tracks calls: who,
   what, when, blocked-by. What your team does with that is your process.

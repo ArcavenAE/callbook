@@ -29,20 +29,29 @@ callbook is part solution, part recipe. Three layers, each useful alone:
 
 ## The working modes
 
-All of these are supported shapes, not aspirations; the production
-recipe has been verified end-to-end on a live cluster:
+All of these are supported shapes, not aspirations (the production
+recipe has been verified end-to-end on a live cluster), with one
+labeled exception: the agent-fleet edge is design assembled from the
+deployed pieces, not yet a drilled deployment:
 
 - **Solo, local-only.** A local bd instance; no cloud dependency at all.
   Optional sync through your project's git remote (`refs/dolt/data`).
 - **Solo + cloud tracker.** Your bd talks TLS to a hosted Dolt instance.
 - **Team on one project.** One database, many contributors, one-time
   per-machine bootstrap.
+- **Agent fleet.** Many agents across many machines working the same
+  projects at machine speed: every agent writes and claims on the
+  project's central tracker under its own actor name; edge read
+  replicas absorb polling, dashboards, and history tooling. Claims
+  are atomic; no merge class exists. (Design; pattern 5 in
+  [docs/patterns.md](docs/patterns.md).)
 - **Fork / parallel work.** Your own database on the shared instance, or
   your own instance entirely.
 - **Federation.** Peer trackers syncing over the dolt remote protocol,
   across teams, orgs, or forks.
 - **Disconnected.** `dolt clone` a working copy, work offline, push/pull
-  on reconnect. Air-gap-tolerant channels (git, file, S3 remotes) need no
+  on reconnect (human-pace teams; fleet writes stay central).
+  Air-gap-tolerant channels (git, file, S3 remotes) need no
   reachable server.
 
 Local-first is the default posture. The kit works with zero cloud access;
@@ -95,6 +104,9 @@ callbook is opinionated. The load-bearing ones:
 4. **Local-first, cloud-optional.** Nothing here phones home. A
    contributor with no cloud access is a full participant.
 5. **TLS from day one** on anything that leaves localhost.
+6. **Claims are locks.** At most one actor holds a bead, which needs
+   one coordinated write plane per project. Read anywhere; claim in
+   one place.
 
 ## Relationship to beads
 

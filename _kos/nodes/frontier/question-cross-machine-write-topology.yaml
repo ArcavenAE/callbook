@@ -110,6 +110,16 @@ notes: >
   and the direction rewrite are a deliberate harvest pass, not done in
   finding-003.
 
+  HARVEST 2026-08-16: the direction rewrite promised by finding-003's
+  notes is done. patterns.md gains pattern 5 (central write plane +
+  edge read replicas, honesty-labeled design) with pattern 4 carrying
+  its validity domain and federation/capstone renumbered 6/7;
+  growth-path splits step 3 by pace and adds the step-1 actor rule;
+  vision adds the coordination problem + the claims-are-locks
+  principle + spawner-stamps + the rig direction; README adds the
+  fleet mode + opinion 6; local-instance adds the fleet role;
+  sync-conflicts is scope-limited to human pace; charter opens F10.
+
   OPERATOR RULING 2026-08-16: the finding-005 plane-split is ratified.
   The multi-author requirement is satisfied on the identity plane; no
   standing requirement needs distributed writes. The write plane is a
