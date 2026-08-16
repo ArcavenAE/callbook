@@ -3,6 +3,16 @@
 *Operator proposal, 2026-08-16. Pre-hypothesis. Captured during the
 finding-006 re-survey; the empirical grounding is there.*
 
+> REVISED same day by finding-007: upstream rig means a STORE (a
+> project database identified by its issue prefix, representable as a
+> type=rig identity bead), and upstream is narrowing its multi-rig
+> machinery. The rig COLUMN is therefore not the carrier. The mapping
+> table below survives with a new carrier: the runtime locus rides
+> the ACTOR string (locus/name grammar; the live client-env default
+> and marvel's baseEnv stamping already do this) or issue metadata.
+> This file stays as the generative record; finding-007 section Q2
+> carries the evidence.
+
 ## The proposal
 
 Use bd's `rig` column as the RUNTIME LOCUS of the acting agent: which

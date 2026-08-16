@@ -256,9 +256,31 @@ The shape, in four rules:
 
 Costs: the write plane is a per-project availability point (pattern
 3's warm standby applies); far-flung writers pay a network round trip
-per write. Breaks first: per-project write throughput. Dolt commits
-serialize, so measure at your fleet's real write rate before scaling
-the fleet, and reach for bd's batched commit policy when it bites.
+per write. Breaks first: per-project write throughput, now measured
+(finding-008, loopback): one instance sustains roughly 18 mutating bd
+ops/s aggregate regardless of writer count, and saturation is
+graceful (latency climbs, zero failures: p50 ~200ms at 4 concurrent
+writers, ~1s at 16). The ceiling is the process-per-op bd CLI
+(~150-200ms per invocation), not dolt, which absorbs ~3,000 rows/s in
+bulk; commit policy is a no-op for one-shot invocations. Sizing rule
+of thumb: at one write per agent per 30s, one instance carries ~500
+agents on throughput alone; keep sustained concurrent writers per
+instance in single digits for a sub-500ms p50. The same probe raced 8
+claimants on one bead for 5 rounds: exactly one winner per round,
+losers get a clean named error; at-most-one-claim is demonstrated,
+not just designed.
+
+Liveness (direction, tracking upstream): bd HEAD ships the lease
+layer whole. A claim takes a TTL lease (default 5m, per-claim
+override), `bd heartbeat` refreshes it, and `bd reclaim` is the
+reaper a supervisor runs on a timer at roughly twice the TTL,
+reverting dead workers' beads to ready. Leases are node-local by
+design, enforceable only where granted, which is exactly this
+pattern's write plane. Adopt it when it reaches a tested release and
+build nothing local meanwhile (finding-007). Release caution: the
+lease line shipped by accident in v1.2.1 (untested, pulled,
+schema-migrating); never install that tag, and watch for its return
+in a tested release.
 
 Governance win over pattern 4: fleet writers need only the rw tier.
 The SuperUser-to-push constraint belongs to remotesapi working-copy

@@ -179,6 +179,13 @@ finding-089):
   writes that names a host, port, or user belongs outside version
   control, and `install.sh`/`doctor` should say so rather than leaving
   it to convention.
+- **`bd init` walk-up adoption** (finding-008, 2026-08-16): run
+  outside a git repository, bd init walks past the intended project
+  root and adopts the first ancestor `.beads/` it finds (the
+  user-level dir on the probe machine), rewriting its metadata.
+  Prevention is git init before bd init; doctor should flag a
+  user-level `~/.beads/metadata.json` that names an unexpected
+  server. Same sharp-edge class as the host-specific pointer above.
 
 ### F3: Per-cloud verification
 
@@ -251,12 +258,22 @@ aae-orc finding-081 (`import --dry-run` never consults the db): the real
 run and the dry run compute their counts independently, which is the
 underlying weakness.
 
-Candidates pending the bd HEAD survey (see F10, finding-006): (j)
-what populates the dormant agent columns (`agent_state`,
-`last_activity`, `rig`; empty through create/claim/close on 1.1.2
-even with the actor stamped); (k) dolt commit authorship from the bd
-actor (every dolt commit reads `beads <beads@local>` today). Verify
-against HEAD before filing either.
+Survey outcomes (finding-007, 2026-08-16): (j) is ANSWERED, not
+filed: the dormant agent columns are reserved base-schema surface,
+and liveness deliberately lives in an ephemeral node-local leases
+table at HEAD (lease + heartbeat + reclaim), returning in a tested
+release after the accidental v1.2.1 (never install that tag; v1.2.2
+is v1.1.2 renumbered and safe). (k) STANDS: no actor-to-dolt-author
+plumbing anywhere at HEAD; file after one quarantined clone-side
+grep confirms it, best timed after the lease release lands.
+Adoption candidate rather than a filing: `claim.pools` (pool
+pseudo-assignees with anti-steal) maps onto B3 name pools and team
+claims; evaluate for enrollment docs at a tested release. New
+candidate (l) from finding-008: `bd init` outside a git repo walks
+up and adopts the first ancestor `.beads/` it finds, rewriting its
+metadata (contaminated the user-level dir during the probe;
+quarantined, production unharmed); prevention is git init first;
+candidate upstream report plus a kit/doctor check (see F2).
 
 The (e) drafts were FILED 2026-07-31 (#5200, #5201) after the audit
 (orc finding-092) passed their gate and container-clean transcripts
@@ -306,13 +323,24 @@ distributed writes. Docs harvested same day: patterns.md pattern 5
 vision claims-are-locks principle, README fleet mode + opinion 6,
 local-instance fleet role, sync-conflicts scope.
 
-Still open: the read-replica edge recipe (dolt read-replica config,
-pull cadence, doctor checks, kit support); the per-instance write
-throughput envelope (dolt commits serialize; measure at fleet write
-rates); the liveness mechanism (survey bd HEAD for what populates
-`agent_state`/`last_activity` before building anything; heartbeat
-wisps exist as a type); the rig convention
-(`_kos/ideas/rig-as-runtime-locus.md`). Node:
+Fan-out executed 2026-08-16 (five parallel forks): the read-replica
+recipe SHIPPED, loopback-verified (`docs/runbooks/read-replica.md`,
+`kit/replica.sh`, doctor checks; hub-down serves last-known data by
+default); throughput MEASURED (finding-008: ~18 mutating ops/s per
+instance, ceiling is the process-per-op client not dolt, claims
+exactly-once under an 8-way race, ~500 agents per instance at one
+write per 30s); liveness ANSWERED (finding-007: upstream ships
+lease + heartbeat + reclaim at HEAD; adopt at a tested release,
+build nothing local, never install v1.2.1); rig ANSWERED
+(finding-007: rig means store; runtime locus rides the actor string
+or metadata; idea revised in place); actor stamping LIVE (client-env
+derived default for interactive shells; marvel stamps per-agent in
+baseEnv, merged as marvel PR #196).
+
+Still open: TLS-production-hub verification of the replica recipe;
+the tested upstream release carrying the lease line (watch; never
+v1.2.1); name-pool ratification (proposal drafted, pending the
+human); the pattern-5 drill (aae-orc-khl5v). Node:
 `_kos/nodes/frontier/question-cross-machine-write-topology.yaml`.
 
 ---
@@ -360,6 +388,7 @@ for direct mode instead).
 
 | Session | Date | Outcomes |
 |---------|------|----------|
+| Fan-out execution (5 Opus forks) | 2026-08-16 | The F10 work queue executed in parallel. HEAD survey (finding-007): upstream ships the whole liveness layer at HEAD (claim TTL lease, bd heartbeat, bd reclaim reaper; node-local leases validate the central write plane); rig means store, so the runtime-locus carrier moves to the actor string (idea revised); v1.2.1 is an accidental untested release, never install; F6 (j) answered, (k) stands, claim.pools noted as B3 adoption candidate. Throughput probe (finding-008): ~18 mutating ops/s per instance, process-per-op client is the ceiling, claims exactly-once under 8-way race, bd-init walk-up gotcha captured as F6 (l) + F2 doctor candidate. Replica recipe shipped loopback-verified (2abf226: read-replica runbook + kit/replica.sh + doctor checks; hub-down serves last-known data). Actor stamping live: client-env derived default (mp/host/tty grammar, preset wins) + name-pool proposal awaiting ratification; marvel baseEnv stamps marvel/workspace/session, merged as marvel PR #196 (84ec78c). patterns.md pattern 5 gains measured numbers + the liveness direction. Board: usohe/8cfh6/fa3rr/a4nq3 closed; fxfkw open pending pool ratification; khl5v drill unblocks when fxfkw closes. |
 | Agent-fleet reframe + docs harvest | 2026-08-15..16 | Operator goal (massively distributed agents, same projects, same time, own identities) reframed the distributed default. findings 003-006: pattern-4 discipline breaks at machine speed; CALM rules the choice (coordinate vs CRDT; partition struck by the goal); multi-author is the identity plane, at-most-one-claim the first confirmed invariant; bd 1.1.2 re-survey (attribution live via spawner-stamped BEADS_ACTOR: created_by + assignee verified on the running store; agent_state/last_activity/rig dormant; upstream building rigs, cross-rig gates, merge-slot, heartbeat wisps; wisps are a parallel table family excluded from JSONL export). 2026 substrate survey: no off-the-shelf store is versioned AND conflict-free AND SQL (document CRDTs closest, no SQL; cr-sqlite drops history). Write plane RULED central per project (operator, 2026-08-16). Docs harvest: patterns.md pattern 5 + validity domain on 4 + renumber (federation 6, capstone 7) + write-plane vocabulary; growth-path step-1 actor rule + step-3 pace fork; vision fourth problem (coordination) + claims-are-locks principle + spawner-stamps + rig direction; README fleet mode + opinion 6; local-instance fleet role; sync-conflicts scope note; B3 evidence; F6 candidates (j)(k); F10 opened. Ideas: conflict-free-versioned-db-substrate-landscape, rig-as-runtime-locus. Node: question-cross-machine-write-topology (4 findings edged). |
 | Review-sweep response | 2026-08-03 | Maintainer's 2026-08-02 consolidated review of the PR stack verified claim-by-claim, then absorbed in one day: #5087 merged onto moved main (our create-policy options folded into upstream's new ProviderOption mechanism, probe-first moved under the migration lock via WithLockedPreparation, lock-order test updated); #5085 gained verifyPeerRemoteURL (fail closed on diverged or missing remote before installing credentials) and federationEnvMutex over the fallback callbacks, with three regressions; #5214 short ciphertext now classifies through CredentialKeyMismatchError; #5207 and #5214 refreshed onto corrected #5085 (#5207's whole review covered by the seam fix alone). All heads MERGEABLE; fork-PR CI awaits maintainer approval. ICU CGO test recipe captured (icu4c@78 include/lib paths); upstream review could not run these tests locally, ours did. finding-002; F6 updated; bd 9h3f noted. |
 | Growth path + patterns drafts | 2026-08-01 | docs/growth-path.md (steps 0-4), docs/patterns.md (six topologies incl. tiered-rigor capstone, Mermaid), docs/runbooks/sync-conflicts.md. Grounded in orc finding-106 (working-copy topology measured: auto-push built in, updated_at conflict class, SuperUser-to-push constraint, seeding + bootstrap mechanics). Capstone citations pending research. F8 updated. |

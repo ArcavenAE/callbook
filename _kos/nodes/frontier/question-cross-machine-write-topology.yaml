@@ -80,15 +80,21 @@ content: |
     - What is the natural partition key for option A (project label,
       id-prefix, assignment)? Does bd's label-carried project membership
       (orc finding-044) supply it directly?
-    - Read replication of others' slices: dolt read-replica pull
-      (dolt_read_replica_remote) vs a timer job vs remotesapi clone
-      refresh. Which meets the few-minute freshness at fleet scale?
-    - Does local write throughput even hold? dolt commits serialize;
-      probe single-per-machine-server throughput at expected agent
-      count before locking topology (finding-003 "to measure" section).
+    - Read replication of others' slices: ANSWERED for the loopback
+      case (read-replica recipe shipped 2026-08-16: persisted
+      dolt_read_replica_remote pull-on-read, hub-down serves
+      last-known data; TLS-production-hub verification remains).
+    - Does local write throughput even hold? MEASURED (finding-008):
+      ~18 mutating ops/s per instance, ceiling is the process-per-op
+      bd CLI not dolt, graceful saturation, claims exactly-once under
+      race. ~500 agents per instance at one write per 30s.
     - If option C is ever pursued, is it a bd upstream contribution
       (charter F5/F6) or a callbook-side merge driver?
 edges:
+  - target: finding-007-bd-head-agent-surface
+    type: derives-from
+  - target: finding-008-dolt-write-throughput-envelope
+    type: derives-from
   - target: finding-003-agent-fleet-multi-writer-breaks-working-copy-sync
     type: derives-from
   - target: finding-004-calm-constraint-coordination-or-crdt-not-partition
@@ -124,7 +130,14 @@ notes: >
   The multi-author requirement is satisfied on the identity plane; no
   standing requirement needs distributed writes. The write plane is a
   coordinated store (horn B) for the claim path and invariants; option C
-  remains only as a far-horizon substrate question. Remaining open here:
-  read topology (edge replicas), per-instance write throughput, liveness
-  mechanism (pending the bd HEAD survey, finding-006), and the rig
-  convention (_kos/ideas/rig-as-runtime-locus.md).
+  remains only as a far-horizon substrate question.
+
+  FAN-OUT 2026-08-16 (five forks): throughput measured (finding-008),
+  liveness and rig answered (finding-007: adopt upstream leases at a
+  tested release; rig means store, locus rides the actor string),
+  replica recipe shipped loopback-verified, actor stamping live
+  (client-env default + marvel PR #196). Upstream independently
+  converged on the central-write-plane conclusion (node-local lease
+  enforcement). Remaining open narrows to: TLS-hub replica
+  verification, the tested-release watch for the lease line, name-pool
+  ratification, and the drill (aae-orc-khl5v).
