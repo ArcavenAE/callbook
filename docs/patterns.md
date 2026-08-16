@@ -240,10 +240,11 @@ The shape, in four rules:
    at-most-one-claim holds by construction; the pattern-4 merge class
    does not exist here.
 2. **Reads scale at the edge.** Each site that wants them runs a read
-   replica (pulling on a short timer) for agent polling, dashboards,
-   and history tooling. Freshness-critical reads (is this still open,
-   did my claim land) go to the write plane; the split lands exactly
-   on the coordination seam.
+   replica (Dolt pull-on-read; stand-up in
+   [runbooks/read-replica.md](runbooks/read-replica.md)) for agent
+   polling, dashboards, and history tooling. Freshness-critical reads
+   (is this still open, did my claim land) go to the write plane; the
+   split lands exactly on the coordination seam.
 3. **Identity rides every write.** The spawner stamps `BEADS_ACTOR`
    from the person's name pool ([vision.md](vision.md)); agents never
    self-report. Verified on stock bd 1.1.2 (finding-006).

@@ -55,6 +55,31 @@ else
   warn "BEADS_ACTOR not set: work will be attributed to your OS user; agents MUST set a pool name (docs/vision.md)"
 fi
 
+# read replicas (pattern 5 edge; docs/runbooks/read-replica.md)
+REPLICA_ROOT="$HOME/.beads/replicas"
+if [[ -d "$REPLICA_ROOT" ]] && compgen -G "$REPLICA_ROOT/*/.dolt" >/dev/null; then
+  for d in "$REPLICA_ROOT"/*/; do
+    [[ -d "$d/.dolt" ]] || continue
+    proj="$(basename "$d")"
+    # ask the ENGINE, not a config file: the variable must be effective
+    eff="$( (cd "$d" && dolt sql -q "SELECT @@dolt_read_replica_remote" -r csv 2>/dev/null | tail -1) || true)"
+    if [[ -z "$eff" || "$eff" == '""' || "$eff" == "NULL" ]]; then
+      bad "replica $proj: dolt_read_replica_remote not effective (re-run kit/replica.sh)"
+      continue
+    fi
+    # a read triggers the pull; an unreachable hub is a warn, because
+    # serving last-known data is the designed offline behavior
+    pull_err="$( (cd "$d" && dolt sql -q "SELECT 1" -r csv 2>&1 >/dev/null) || true)"
+    if printf '%s' "$pull_err" | grep -q "replication disabled"; then
+      warn "replica $proj: hub unreachable; serving last-known data (pull resumes when the hub returns)"
+    else
+      ok "replica $proj: pull-on-read effective against remote '$eff'"
+    fi
+  done
+else
+  ok "no read replicas configured (the fleet edge is optional; docs/runbooks/read-replica.md)"
+fi
+
 # enrollments (shared-tracker attachments)
 if [[ -d "$ENROLL_DIR" ]] && compgen -G "$ENROLL_DIR/*.env" >/dev/null; then
   for f in "$ENROLL_DIR"/*.env; do

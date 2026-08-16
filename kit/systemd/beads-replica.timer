@@ -1,0 +1,10 @@
+[Unit]
+Description=callbook read-replica keep-warm schedule (__PROJECT__)
+
+[Timer]
+OnBootSec=__INTERVAL__
+OnUnitActiveSec=__INTERVAL__
+Unit=beads-replica-__PROJECT__.service
+
+[Install]
+WantedBy=timers.target

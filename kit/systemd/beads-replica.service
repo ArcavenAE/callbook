@@ -1,0 +1,7 @@
+[Unit]
+Description=callbook read-replica keep-warm pull (one shot)
+
+[Service]
+Type=oneshot
+WorkingDirectory=__REPLICA_DIR__
+ExecStart=__DOLT__ sql -q "SELECT 1"

@@ -95,7 +95,9 @@ and cache (agent polling, dashboards, history tooling, warm DR),
 while every write and claim goes to the project's tracker under the
 agent's own actor name, stamped by the spawner (`BEADS_ACTOR`).
 Freshness-critical reads (is this bead still open, did my claim land)
-go to the tracker; everything else may lag seconds. Derivation:
+go to the tracker; everything else may lag seconds. Stand-up and
+routing rules: [runbooks/read-replica.md](runbooks/read-replica.md)
+(`kit/replica.sh` does the mechanics). Derivation:
 _kos/findings/ findings 003 through 006.
 
 ## Failure modes we hit so you don't
