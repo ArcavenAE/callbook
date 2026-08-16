@@ -95,6 +95,8 @@ edges:
     type: derives-from
   - target: finding-005-multi-author-is-the-identity-plane-not-the-topology
     type: derives-from
+  - target: finding-006-bd-112-agent-surface-resurvey
+    type: derives-from
 provenance:
   created_by: human
   session: "2026-08-15"
@@ -107,3 +109,12 @@ notes: >
   which is the deployment it was measured on. The validity-domain caveat
   and the direction rewrite are a deliberate harvest pass, not done in
   finding-003.
+
+  OPERATOR RULING 2026-08-16: the finding-005 plane-split is ratified.
+  The multi-author requirement is satisfied on the identity plane; no
+  standing requirement needs distributed writes. The write plane is a
+  coordinated store (horn B) for the claim path and invariants; option C
+  remains only as a far-horizon substrate question. Remaining open here:
+  read topology (edge replicas), per-instance write throughput, liveness
+  mechanism (pending the bd HEAD survey, finding-006), and the rig
+  convention (_kos/ideas/rig-as-runtime-locus.md).
