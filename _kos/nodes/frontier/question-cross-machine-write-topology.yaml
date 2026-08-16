@@ -58,11 +58,25 @@ content: |
   "one active editor per bead, claim before edit" was a hidden manual
   coordination protocol for exactly the invariant CALM forbids for free.
 
+  Reframe (finding-005): the operator's non-negotiable of 2026-08-16
+  (multi-agent, multi-author; agents claim work under their own
+  identities) lives on the identity and coordination planes, which are
+  orthogonal to this node's topology question. Multi-author does not
+  require multi-master; bd's own atomic --claim is many-authors-against-
+  one-store by design. Today's deployment is central AND mono-identity;
+  the mono-identity is the defect (callbook B3 designed the fix; bd
+  1.1.2 ships a dormant agent-identity/liveness schema; orc finding-123
+  picked the stamping mechanism; nothing is wired). First confirmed
+  member of the invariant inventory: at-most-one-claim. The claim path
+  requires a coordinated store on every workable topology.
+
   Sub-questions:
     - THE deciding question: which bead operations must enforce an
       invariant globally and immediately across all agents, versus which
       can converge after the fact? That inventory selects horn B, C, or
-      hybrid.
+      hybrid. First confirmed member: at-most-one-claim (finding-005),
+      which is horn-B-shaped regardless of what the rest of the
+      inventory says.
     - What is the natural partition key for option A (project label,
       id-prefix, assignment)? Does bd's label-carried project membership
       (orc finding-044) supply it directly?
@@ -78,6 +92,8 @@ edges:
   - target: finding-003-agent-fleet-multi-writer-breaks-working-copy-sync
     type: derives-from
   - target: finding-004-calm-constraint-coordination-or-crdt-not-partition
+    type: derives-from
+  - target: finding-005-multi-author-is-the-identity-plane-not-the-topology
     type: derives-from
 provenance:
   created_by: human
