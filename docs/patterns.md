@@ -112,6 +112,24 @@ with the warm-standby replication in the Helm recipe). Concurrency is
 the SQL server's problem, which it solves well. Choose this when the
 team is always-connected and simplicity beats resilience.
 
+**As built at the smallest scale (measured, 2026-08-28).** Pattern 3
+does not require a cloud: the smallest real instance is two machines on
+one LAN, with the shared-local-server (pattern 2) laptop rebound from
+loopback to all interfaces and a second machine connecting as a direct
+SQL client under its own account. It is a Pattern 2 to Pattern 3
+transition over exactly one server change plus one peer onboarding, and
+it crosses pattern 2's "breaks at the second machine" boundary without
+committing a host-specific pointer (the peer's environment overrides the
+tracked one). The full replication recipe (server bind, mDNS host
+discovery, identity minting, keychain custody, version pinning and the
+schema parity gate, the `maintainer` role, harness permissions) is in
+[reference/lan-multiwriter-as-built.md](reference/lan-multiwriter-as-built.md).
+Two cautions specific to this scale: it ships with no TLS by default, so
+the LAN sees the board's contents until you enable dolt's listener TLS
+(the credential itself is challenge-response protected, the session data
+is not); and every writer must pin the same bd version, because a newer
+client silently migrates the shared schema.
+
 ## 4. Working copies with a hub (the measured distributed pattern)
 
 Every machine runs its own local store (pattern 1 or 2) and syncs
@@ -493,6 +511,7 @@ per store.
 | One person, one machine | 1. Solo local |
 | Many agents, one machine | 2. Shared local server |
 | Small always-online team | 3. Hub with thin clients |
+| A second machine on the same trusted LAN, sharing writes now | 3, as built: [reference/lan-multiwriter-as-built.md](reference/lan-multiwriter-as-built.md) |
 | Distributed team at human pace; offline writes matter | 4. Working copies with a hub |
 | Agent fleet: many machines, same projects, machine speed | 5. Central write plane + edge read replicas |
 | A second team or an external collaborator | 6. Federation |
