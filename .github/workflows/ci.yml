@@ -43,4 +43,5 @@ jobs:
         run: |
           set -euo pipefail
           ! grep -rn "$(printf '\342\200\224')" --exclude-dir=.git . || { echo "em dash found"; exit 1; }
-          ! grep -rniE "18{1}98|e98[dsp]|ms{1}sci" --exclude-dir=.git . || { echo "org token found"; exit 1; }
+          ! grep -rniEf tools/org-token.pattern --exclude-dir=.git . || { echo "org token found"; exit 1; }
+          bash tests/org-token-test.sh
