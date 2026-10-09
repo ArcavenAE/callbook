@@ -1,0 +1,46 @@
+id: question-bd-upstream-gaps
+type: question
+confidence: frontier
+title: "Which bd and Dolt upstream gaps sit on callbook's path, and which has each callbook filing closed?"
+tags:
+  - callbook
+  - upstream
+  - beads
+  - tls
+content: |
+  Opened 2026-10-09 by a harvest, as the graph home for charter F6
+  ("Upstream gaps (tracked)"). F6 is prose with no node, so findings 001
+  and 002 had no node citing them. This node holds those citations and
+  points at F6 for the item list (a) to (l); it does not copy that list.
+
+  What each finding settled, as of its own date:
+  - finding-001 (2026-07-30). bd's direct server mode negotiates TLS on
+    every released build since v0.53.0; only `bd init` drops it. The
+    "server mode cannot speak TLS" premise was an over-generalization from
+    the visible flags, and proxied mode became an alternative rather than
+    a requirement (graveyard G4). The method, a deliberately wrong
+    password that separates a TLS failure from an auth failure, needs no
+    real credential. F6 items (d) to (g) came from it.
+  - finding-002 (2026-08-03). The maintainer's 2026-08-02 review sweep
+    over the callbook PR stack was answered in one day by absorbing every fix that
+    was callbook's to carry. Its lessons: stacked PRs concentrate review fixes
+    at the seam PR; a maintainer-fix disposition accepts contributor
+    absorption; when upstream evolves under an open PR, fold into its
+    mechanism rather than duplicate it; fork-PR CI waits on a maintainer
+    click.
+
+  Open: the state of each F6 item after 2026-08-16 has not been
+  re-checked here. Before any item is cited as current, read its upstream
+  issue or PR state with one command. finding-001's own open items (the
+  init path re-verified once a release carries the fix) still stand.
+edges:
+  - target: finding-001-bd-direct-mode-tls-verified
+    type: derives
+    note: "direct mode negotiates TLS on released builds; only bd init drops it; source of F6 (d) to (g)"
+  - target: finding-002-beads-review-sweep-response
+    type: derives
+    note: "the 2026-08-02 review sweep answered in one day; how the upstream PR stack is carried"
+provenance:
+  created_by: agent
+  session: "architect seat, harvest 2026-10-09"
+  created_at: "2026-10-09"
