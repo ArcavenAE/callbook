@@ -1,3 +1,5 @@
+Closed 2026-10-25: stalled-ideas review, no open pointer and no recent activity
+
 # rig as runtime locus: one column, one mapping per runtime kind
 
 *Operator proposal, 2026-08-16. Pre-hypothesis. Captured during the
