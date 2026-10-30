@@ -18,7 +18,7 @@ image:
   # Override to route through a private registry / pull-through cache if you
   # have one.
   repository: dolthub/dolt-sql-server
-  tag: "2.2.2"
+  tag: "2.6.0"
   pullPolicy: IfNotPresent
 
 # Primary + warm standby. Scale to 3 for a second standby (added pods join as
@@ -130,7 +130,7 @@ workbench:
   enabled: false
   image:
     repository: dolthub/dolt-workbench
-    tag: "0.3.73"
+    tag: "0.3.76"
   port: 3000
   graphqlPort: 9002
   # Same-origin Caddy sidecar: the workbench browser UI calls a separate
@@ -143,7 +143,7 @@ workbench:
     port: 8080
     image:
       repository: caddy
-      tag: "2.10-alpine"
+      tag: "2.11-alpine"
   resources:
     requests:
       cpu: 100m
