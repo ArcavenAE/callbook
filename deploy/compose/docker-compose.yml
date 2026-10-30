@@ -11,7 +11,7 @@
 # beyond localhost).
 services:
   dolt:
-    image: dolthub/dolt-sql-server:2.2.2
+    image: dolthub/dolt-sql-server:2.6.0
     restart: unless-stopped
     ports:
       - "127.0.0.1:3306:3306"   # widen deliberately, with TLS, if the team is remote
@@ -24,7 +24,7 @@ services:
       - ./servercfg:/etc/dolt/servercfg.d:ro
 
   workbench:
-    image: dolthub/dolt-workbench:0.3.73
+    image: dolthub/dolt-workbench:0.3.76
     restart: unless-stopped
     ports:
       - "127.0.0.1:3000:3000"   # browser UI: keep on loopback or behind your auth proxy
