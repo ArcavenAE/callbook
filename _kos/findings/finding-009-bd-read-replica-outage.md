@@ -26,7 +26,7 @@ Scratch primary, then three kinds of local copy, each with bd 1.1.2 pointed at i
 | primary restarts under a running replica started while the primary was up | pulls with no replica restart: 14.65 s (skip 0), 40.62 s (skip 1) |
 | replica variables plus `sql-server --readonly` | primary write pulled in 0.18 s; a local SQL UPDATE and a bd sql insert both rc 1, `database server is set to read only mode`; with the primary down, reads fail as in row 2. Control: a writable replica accepted the same UPDATE |
 | replica variables persisted in the database's own `.dolt/config.json` (as `kit/replica.sh` does), server started with `--data-dir` one level up | variables ignored: stale data, rc 0, no warning, 43 s, twice |
-| plain clone served `--readonly` | ready, list, show, search, blocked rc 0; `bd stats` and `bd stale` rc 1. The clone has `schema_migrations` (the same rows as the primary) but lacks `ignored_schema_migrations`, which bd registers in `dolt_ignore` (bd v1.1.2 `internal/storage/schema/schema.go`), so no clone or pull carries it. bd tries to create it on open, and the read-only server refuses. bd's error text says "creating schema_migrations", but the missing table is the ignored one |
+| plain clone served `--readonly` | ready, list, show, search, blocked rc 0; `bd stats`, `bd stale` and writes rc 1, with `failed to open database: failed to initialize schema: schema migration: creating schema_migrations: Error 1105 (HY000): database server is set to read only mode`. Control: a read-only server over the original data gives `bd stats` rc 0, and writes fail at the write itself. The clone differs from the original in two measured ways: it lacks `ignored_schema_migrations`, which bd registers in `dolt_ignore` (bd v1.1.2 `internal/storage/schema/schema.go`), so no clone or pull carries it; and it lacks the primary's uncommitted config row. Which of these causes the failure is open |
 | `bd --readonly` against the read-write primary | create, update --claim, comments add, close rc 1, `operation '<op>' is not allowed in read-only mode`; list rc 0 |
 | bd create on a replica | rc 1, `issue_prefix config is missing`, because the primary's config table was uncommitted when cloned |
 
@@ -53,7 +53,7 @@ Scratch primary, then three kinds of local copy, each with bd 1.1.2 pointed at i
 2. `kit/replica.sh` persists the variables where a `--data-dir` server will not read them. The kit should either set them at server level or have `kit/doctor.sh` check them through the server that bd uses. The doctor already asks the engine; it should ask the same server bd is configured for.
 3. A replica must be served `--readonly`, or local writes land where nothing syncs them (row 6 control).
 4. bd 1.1.2 has one server address for reads and writes. Splitting them needs a wrapper or the seat's own discipline: reads at the local copy, every write at the primary. `bd --readonly` on the local address blocks a write sent there by mistake.
-5. A plain clone breaks `bd stats` and `bd stale` until `ignored_schema_migrations` exists in the copy. Pull-on-read replicas did not show this.
+5. A plain clone served `--readonly` breaks `bd stats` and `bd stale` (section 1, plain clone row). The cause is not settled, so it is not known whether adding `ignored_schema_migrations` to the copy is enough. Pull-on-read replicas did not show this.
 
 ## 5. Shapes still open
 
@@ -64,4 +64,4 @@ Scratch primary, then three kinds of local copy, each with bd 1.1.2 pointed at i
 | C. cluster standby, after upgrading to 2.5.0 or later | yes | async push | yes, per docs | no |
 | D. no local copy (today) | no | yes | no | yes |
 
-B and C are the two candidates that meet the stated goal. Both need a scratch trial before a choice: B for the swap and the `ignored_schema_migrations` gap, C for standby reads during an outage, failover, and users and grants (the docs and the 2.2.3 code disagree on whether those replicate).
+B and C are the two candidates that meet the stated goal. Both need a scratch trial before a choice: B for the swap and the `bd stats` and `bd stale` failure on a read-only clone, C for standby reads during an outage, failover, and users and grants (the docs and the 2.2.3 code disagree on whether those replicate).
