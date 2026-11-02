@@ -2,8 +2,8 @@
 
 Date: 2026-11-02
 Status: measured on scratch Dolt 2.6.2 and 2.2.3 servers with bd 1.1.2 (one host, loopback, scratch data, a sandbox that allowed only localhost and only scratch writes). Nothing was pointed at a live server. Follows finding-009 (the replica options) and answers issues #14 and #15.
-Sources: the figures are in the comments on #14 and #15, and the readings comment on #15 carries the setup keys, status rows, counts and grant runs. The Dolt version and default facts (2.5.0 with #12089 and #12090, 2.3.3 with #11746, `dolt_cluster_ack_writes_timeout_secs` 0) are the docs and release-note reading in finding-009 section 2, not measurements.
-Asks: the bdreplica-1 card (a Dolt cluster standby, once Dolt is at 2.5.0 or later). Extends `docs/runbooks/read-replica.md`.
+Sources: the figures are in the comments on #14 and #15, and the readings comment on #15 (issuecomment-6588288780) carries the setup keys, status rows, counts and grant runs. The Dolt version and default facts (2.5.0 with #12089 and #12090, 2.3.3 with #11746, `dolt_cluster_ack_writes_timeout_secs` 0) are the docs and release-note reading in finding-009 section 2, not measurements.
+Asks: the bdreplica-1 card (a Dolt cluster standby, once Dolt is at 2.5.0 or later, per finding-009 section 2). Extends `docs/runbooks/read-replica.md`.
 
 ## Headline
 
@@ -27,7 +27,7 @@ Method: the 2.6.2 and 2.2.3 release tarballs, each checked against its published
 | 2.4.0, `INSERT ... ON DUPLICATE KEY UPDATE` needs UPDATE | confirmed: a select-and-insert user got Error 1142; root passed; bd 1.1.2 contains 10 such statements |
 | 2.5.0, multi-branch commits | commits on a second branch and on main from separate sessions succeeded; bd works on main only |
 | 2.6.0, `dolt_merge` over the full graph | a merge of diverged branches returned "merge successful", no conflicts |
-| a 2.2.3 server reading data last written by 2.6.2 (dolthub/dolt#11746 direction) | bd ready, list, show, stale and create rc 0; no DESC index exists in bd's schema as created here, so the misread was not exercised |
+| a 2.2.3 server reading data last written by 2.6.2 (dolthub/dolt#11746 direction; finding-009 section 2) | bd ready, list, show, stale and create rc 0; no DESC index exists in bd's schema as created here, so the misread was not exercised |
 
 Every reader host upgrades together: #11746 (finding-009 section 2) describes a 2.2.3 reader misreading a DESC index made by 2.3.3 or later, and this run could not exercise it.
 
@@ -59,7 +59,7 @@ Not separated: whether the last pre-kill write never reached the old primary's d
 ## 4. What this means for the kit
 
 1. A standby meets the stated goal (local reads that survive a primary outage) where shape A of finding-009 did not. Shape C of finding-009 section 5 is now measured on one host.
-2. The asynchronous loss window is the cost. A write the caller needs to survive a primary loss needs `dolt_cluster_ack_writes_timeout_secs` above 0, which was not measured here.
+2. The asynchronous loss window is the cost. A write the caller needs to survive a primary loss needs `dolt_cluster_ack_writes_timeout_secs` above 0 (the setting is from finding-009 section 2), which was not measured here.
 3. The bd user's grants belong in the kit's setup text: select, insert, update, delete and execute at least.
 4. Upgrade every reader host together, to 2.5.0 or later (dolthub/dolt#12090 and #12089 bear on cluster mode and on a writable remotesapi; finding-009 section 2).
 5. `docs/runbooks/read-replica.md` and `kit/replica.sh` still need the corrections from finding-009 section 4 (issue #16).
