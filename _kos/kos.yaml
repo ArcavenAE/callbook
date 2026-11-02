@@ -1,0 +1,11 @@
+graph_id: callbook
+scope: repo
+description: Work and task tracking for distributed agent and human teams
+schema_version: '0.3'
+findings:
+  # The highest hand-numbered finding when minted ids were adopted
+  # (2026-11-02). New findings take ids from `kos id finding <slug>`.
+  # Read by kos built from kos#122 on (alpha-20261002 and later); older
+  # kos ignores this key.
+  numbered_through: 9
+includes: []
