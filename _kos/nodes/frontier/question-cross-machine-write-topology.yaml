@@ -141,3 +141,9 @@ notes: >
   enforcement). Remaining open narrows to: TLS-hub replica
   verification, the tested-release watch for the lease line, name-pool
   ratification, and the drill (aae-orc-khl5v).
+
+  HARVEST 2026-11-02: the idea file _kos/ideas/rig-as-runtime-locus.md,
+  which the 2026-08-16 fan-out note above answers (rig means store, locus
+  rides the actor string), is closed (#8, 7666940). The reason is the
+  2026-10-25 stalled-ideas review: no open pointer and no recent activity.
+  The closure does not change this node's open sub-questions.
