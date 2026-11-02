@@ -58,4 +58,6 @@ just template       # render the chart with default values
 3. Probe, then write findings in `_kos/findings/`
 4. Harvest: update `_kos/nodes/`; charter stays summary + pointer
 
+Mint a finding id with `kos id finding <slug>`; never hand-allocate a number.
+
 Cross-repo questions belong in the orchestrator's `_kos/`.
