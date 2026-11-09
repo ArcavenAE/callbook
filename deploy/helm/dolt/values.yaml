@@ -124,7 +124,7 @@ backup:
   remoteUrl: ""
   image:
     repository: mysql
-    tag: "8.4"
+    tag: "26.10"
 
 workbench:
   enabled: false
