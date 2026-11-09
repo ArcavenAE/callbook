@@ -11,7 +11,7 @@
 # beyond localhost).
 services:
   dolt:
-    image: dolthub/dolt-sql-server:2.6.1
+    image: dolthub/dolt-sql-server:2.7.1
     restart: unless-stopped
     ports:
       - "127.0.0.1:3306:3306"   # widen deliberately, with TLS, if the team is remote
