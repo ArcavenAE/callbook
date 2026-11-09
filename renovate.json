@@ -2,5 +2,20 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "local>ArcavenAE/renovate-config"
+  ],
+  "packageRules": [
+    {
+      "description": "The backup CronJob runs the mysql client against dolt. The 26.x client is unproven against dolt's authentication, so the image stays on 8.4 LTS.",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "mysql"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": false
+    }
   ]
 }
