@@ -40,6 +40,12 @@ edges:
   - target: finding-002-beads-review-sweep-response
     type: derives
     note: "the 2026-08-02 review sweep answered in one day; how the upstream PR stack is carried"
+  - target: finding-009-bd-read-replica-outage
+    type: supports
+    note: "records the Dolt version gap (2.2.3 on the primary against 2.6.2 released) and the 2.5.0 fixes that bear on cluster mode; the F6 items themselves were not re-checked"
+  - target: finding-010-dolt-2-6-2-and-cluster-standby
+    type: supports
+    note: "Dolt 2.6.2 passed every bd command tried on a scratch cluster standby; the upgrade facts, not a re-check of the F6 items"
 provenance:
   created_by: agent
   session: "architect seat, harvest 2026-10-09"

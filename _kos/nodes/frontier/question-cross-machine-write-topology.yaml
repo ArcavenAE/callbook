@@ -84,6 +84,21 @@ content: |
       case (read-replica recipe shipped 2026-08-16: persisted
       dolt_read_replica_remote pull-on-read, hub-down serves
       last-known data; TLS-production-hub verification remains).
+      Revised 2026-11-17 (I-532): finding-009 measured that the
+      "hub-down serves last-known data" half holds only for the dolt CLI. Through
+      a running `sql-server`, which is what bd talks to, a pull-on-read replica
+      fails every bd read while the primary is down (bd ready, list and show
+      return rc 1 with the primary stopped), and replica variables persisted in
+      the database's own `.dolt/config.json` are ignored, so reads are stale
+      with rc 0 and no warning. finding-010 answers the outage-read goal with a
+      different shape: a cluster standby, on which bd ready, list, show, stats,
+      stale and count returned rc 0 with the primary killed, under three
+      conditions (asynchronous replication can lose the last write, the bd user
+      needs the EXECUTE grant, one home per server). A standby on another host,
+      TLS on remotesapi and acknowledged writes were not measured. So this
+      sub-question is answered for the loopback case as local, fresh reads, not
+      as reads through an outage. The runbook line "Reads survive a hub outage
+      by default" is still uncorrected (issue #16). No confidence change.
     - Does local write throughput even hold? MEASURED (finding-008):
       ~18 mutating ops/s per instance, ceiling is the process-per-op
       bd CLI not dolt, graceful saturation, claims exactly-once under
@@ -103,6 +118,12 @@ edges:
     type: derives-from
   - target: finding-006-bd-112-agent-surface-resurvey
     type: derives-from
+  - target: finding-009-bd-read-replica-outage
+    type: supports
+    note: "a pull-on-read replica gives fresh local reads but does not read through a primary outage when bd talks to a running sql-server; revises the read-replication sub-question"
+  - target: finding-010-dolt-2-6-2-and-cluster-standby
+    type: supports
+    note: "a cluster standby keeps bd reads working with the primary down, on one host and under three conditions; cross-host, TLS and acknowledged writes not measured"
 provenance:
   created_by: human
   session: "2026-08-15"
